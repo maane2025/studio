@@ -5,24 +5,34 @@ export type Cost = {
   volume: number;
 };
 
+// Simple pseudo-random number generator for deterministic results
+const createSeededRandom = (seed: number) => {
+    let state = seed;
+    return () => {
+        state = (state * 9301 + 49297) % 233280;
+        return state / 233280;
+    };
+};
+
 const generateHistoricalCosts = (): Cost[] => {
   const data: Cost[] = [];
   const baseFixedCost = 50000;
   const baseVariableCostPerUnit = 75;
   let volume = 1000;
+  const random = createSeededRandom(12345); // Use a fixed seed
 
   for (let i = 23; i >= 0; i--) {
-    const date = new Date();
+    const date = new Date(2024, 5, 1); // Use a fixed start date
     date.setMonth(date.getMonth() - i);
     
     // Introduce some seasonality and trend to volume
     const month = date.getMonth();
     const seasonalFactor = 1 + 0.2 * Math.sin((month / 12) * 2 * Math.PI);
     const trendFactor = 1 + i * 0.005;
-    volume = 1000 * seasonalFactor * trendFactor + Math.random() * 100 - 50;
+    volume = 1000 * seasonalFactor * trendFactor + random() * 100 - 50;
 
-    const variableCostPerUnit = baseVariableCostPerUnit + (Math.random() - 0.5) * 5;
-    const fixedCost = baseFixedCost + (Math.random() - 0.5) * 2000;
+    const variableCostPerUnit = baseVariableCostPerUnit + (random() - 0.5) * 5;
+    const fixedCost = baseFixedCost + (random() - 0.5) * 2000;
     
     const totalVariableCost = volume * variableCostPerUnit;
     const totalCost = fixedCost + totalVariableCost;

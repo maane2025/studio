@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   BarChart3,
   DollarSign,
@@ -210,6 +210,11 @@ const ChangeFooter = ({ change, changeType, isIncreaseGood = false }: { change: 
 };
 
 export default function DashboardClient() {
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     const [forecastData, setForecastData] = useState<ForecastData[]>([]);
     const [analysisSummary, setAnalysisSummary] = useState('');
     const [overrunWarning, setOverrunWarning] = useState('');
@@ -318,6 +323,10 @@ export default function DashboardClient() {
         }
         setIsLoadingAnomaly(false);
     };
+
+    if (!isClient) {
+        return null;
+    }
 
   return (
     <SidebarProvider>

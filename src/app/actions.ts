@@ -78,6 +78,10 @@ export async function runAnomalyDetection(historicalData: Cost[]) {
         return { report: result.anomalyReport };
     } catch (error) {
         console.error("Error in runAnomalyDetection:", error);
-        return { error: "Failed to run anomaly detection." };
+        let errorMessage = "Failed to run anomaly detection.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return { error: errorMessage };
     }
 }

@@ -46,20 +46,11 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Toaster, toast } from "@/components/ui/toaster"
 import { historicalCosts as initialHistoricalCosts, formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
-import { runForecast, runAnomalyDetection } from './actions';
+import { runForecast } from './actions';
 
 type ForecastData = {
   Date: string;
@@ -258,12 +249,9 @@ export default function DashboardClient() {
     const [forecastData, setForecastData] = useState<ForecastData[]>([]);
     const [analysisSummary, setAnalysisSummary] = useState('');
     const [overrunWarning, setOverrunWarning] = useState('');
-    const [anomalyReport, setAnomalyReport] = useState('');
-    const [isAnomalyAlertOpen, setIsAnomalyAlertOpen] = useState(false);
-
+    
     const [isLoadingForecast, setIsLoadingForecast] = useState(false);
-    const [isLoadingAnomaly, setIsLoadingAnomaly] = useState(false);
-
+    
     const metrics = useMemo(() => {
         if (historicalCosts.length === 0) {
             return {
@@ -352,40 +340,16 @@ export default function DashboardClient() {
                 title: "Forecast Failed",
                 description: result.error,
             });
-        } else {
+        } else if (result.forecast) {
             setForecastData(result.forecast);
-            setAnalysisSummary(result.summary);
-            setOverrunWarning(result.warning);
+            setAnalysisSummary(result.summary || '');
+            setOverrunWarning(result.warning || '');
             toast({
                 title: "Forecast Generated",
                 description: "Future cost predictions are now available.",
             });
         }
         setIsLoadingForecast(false);
-    };
-
-    const handleAnomalyDetection = async () => {
-        if(historicalCosts.length === 0) {
-            toast({
-                variant: "destructive",
-                title: "No Data",
-                description: "Cannot run anomaly detection without historical data. Please upload a file.",
-            });
-            return;
-        }
-        setIsLoadingAnomaly(true);
-        const result = await runAnomalyDetection(historicalCosts);
-        if (result.error) {
-            toast({
-                variant: "destructive",
-                title: "Analysis Failed",
-                description: result.error,
-            });
-        } else {
-            setAnomalyReport(result.report);
-            setIsAnomalyAlertOpen(true);
-        }
-        setIsLoadingAnomaly(false);
     };
     
     const handleDataUploaded = (data: Cost[]) => {
@@ -394,7 +358,6 @@ export default function DashboardClient() {
         setForecastData([]);
         setAnalysisSummary('');
         setOverrunWarning('');
-        setAnomalyReport('');
     }
 
     if (!isClient) {
@@ -404,11 +367,9 @@ export default function DashboardClient() {
   return (
     <>
         <Tabs defaultValue="overview">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="data-import">Data Import</TabsTrigger>
-                <TabsTrigger value="anomaly-detection">Anomaly Detection</TabsTrigger>
-                <TabsTrigger value="raw-data">Raw Data</TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -521,81 +482,7 @@ export default function DashboardClient() {
             <TabsContent value="data-import">
                 <CsvUploader onDataUploaded={handleDataUploaded} />
             </TabsContent>
-            <TabsContent value="anomaly-detection">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Anomaly Detection</CardTitle>
-                        <CardDescription>Identify unusual fluctuations in your cost data using AI.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
-                        <ShieldAlert className="w-16 h-16 text-primary" />
-                        <p className="max-w-md text-muted-foreground">
-                            Our AI will analyze the historical cost data to find any significant deviations, outliers, or unexpected trends that might require your attention.
-                        </p>
-
-                        <Button onClick={handleAnomalyDetection} disabled={isLoadingAnomaly}>
-                            {isLoadingAnomaly && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Run Anomaly Analysis
-                        </Button>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="raw-data">
-               <Card>
-                   <CardHeader>
-                       <CardTitle>Historical Cost Data</CardTitle>
-                       <CardDescription>The complete dataset used for analysis and forecasting.</CardDescription>
-                   </CardHeader>
-                   <CardContent>
-                       {historicalCosts.length > 0 ? (
-                           <Table>
-                               <TableHeader>
-                                   <TableRow>
-                                       <TableHead>Date</TableHead>
-                                       <TableHead className="text-right">Total Cost</TableHead>
-                                       <TableHead className="text-right">Unit Cost</TableHead>
-                                       <TableHead className="text-right">Volume</TableHead>
-                                   </TableRow>
-                               </TableHeader>
-                               <TableBody>
-                                   {[...historicalCosts].reverse().map((cost) => (
-                                       <TableRow key={cost.date}>
-                                           <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</TableCell>
-                                           <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
-                                           <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
-                                           <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
-                                       </TableRow>
-                                   ))}
-                               </TableBody>
-                           </Table>
-                       ) : (
-                           <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
-                                <p>No data loaded. Please upload a file in the "Data Import" tab.</p>
-                           </div>
-                       )}
-                   </CardContent>
-               </Card>
-            </TabsContent>
         </Tabs>
-
-        <AlertDialog open={isAnomalyAlertOpen} onOpenChange={setIsAnomalyAlertOpen}>
-            <AlertDialogContent className="max-w-2xl">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Anomaly Detection Report</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        The following anomalies were detected in the cost data.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto pr-4">
-                    <pre className="whitespace-pre-wrap text-sm text-foreground bg-muted p-4 rounded-md font-sans">
-                        {anomalyReport}
-                    </pre>
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogAction>Close</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
     </>
   );
 }

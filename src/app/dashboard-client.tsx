@@ -48,7 +48,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Toaster, toast } from "@/components/ui/toaster"
-import { historicalCosts as initialHistoricalCosts, formatCurrency, formatNumber } from '@/lib/data';
+import { useDataContext } from '@/lib/data-provider';
+import { formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
 import { runForecast } from './actions';
 
@@ -98,6 +99,14 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
 
     const processData = (data: any[]) => {
          try {
+            if (data.length === 0) {
+                 toast({
+                    variant: "destructive",
+                    title: "Empty File",
+                    description: "The uploaded file is empty or could not be read.",
+                });
+                return;
+            }
             const requiredHeaders = ['date', 'totalcost', 'unitcost', 'volume'];
             const header = Object.keys(data[0]).map(h => h.toLowerCase().replace(/\s/g, ''));
             const hasRequiredHeaders = requiredHeaders.every(h => header.includes(h));
@@ -106,7 +115,7 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
                 toast({
                     variant: "destructive",
                     title: "Invalid Header",
-                    description: `File must have columns: ${requiredHeaders.join(', ')}`,
+                    description: `File must have columns: date, totalcost, unitcost, volume`,
                 });
                 return;
             }
@@ -123,9 +132,18 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
                 let date = newRow.date;
                 if (typeof date === 'number') {
                     date = new Date(Math.round((date - 25569) * 864e5)).toISOString().split('T')[0];
+                } else if (typeof date === 'string') {
+                    // Try parsing various string formats
+                    const parsedDate = new Date(date);
+                    if (!isNaN(parsedDate.getTime())) {
+                        date = parsedDate.toISOString().split('T')[0];
+                    } else {
+                        date = null; // Invalid date format
+                    }
                 } else {
-                    date = new Date(date).toISOString().split('T')[0];
+                     date = new Date(date).toISOString().split('T')[0];
                 }
+
 
                 return {
                     date: date,
@@ -136,10 +154,10 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
             }).filter(d => d.date && !isNaN(d.totalCost) && !isNaN(d.unitCost) && !isNaN(d.volume));
 
             if(parsedData.length === 0){
-                throw new Error("No valid data rows found in the file.");
+                throw new Error("No valid data rows found in the file. Check data formats and headers.");
             }
             
-            onDataUploaded(parsedData);
+            onDataUploaded(parsedData.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
             toast({
                 title: "Data Uploaded",
                 description: `${parsedData.length} records have been successfully loaded.`,
@@ -240,12 +258,13 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
 }
 
 export default function DashboardClient() {
+    const { historicalCosts, setHistoricalCosts } = useDataContext();
+
     const [isClient, setIsClient] = useState(false);
     useEffect(() => {
         setIsClient(true);
     }, []);
 
-    const [historicalCosts, setHistoricalCosts] = useState<Cost[]>(initialHistoricalCosts);
     const [forecastData, setForecastData] = useState<ForecastData[]>([]);
     const [analysisSummary, setAnalysisSummary] = useState('');
     const [overrunWarning, setOverrunWarning] = useState('');

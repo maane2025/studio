@@ -3,12 +3,15 @@
 import { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { historicalCosts, formatCurrency, formatNumber } from '@/lib/data';
+import { useDataContext } from '@/lib/data-provider';
+import { formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
 export default function AnalyticsPage() {
+    const { historicalCosts } = useDataContext();
+
     const analyticsData = useMemo(() => {
         if (historicalCosts.length === 0) {
             return {

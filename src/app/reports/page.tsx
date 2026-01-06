@@ -1,3 +1,5 @@
+"use client";
+
 import {
     Card,
     CardContent,
@@ -13,9 +15,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { historicalCosts, formatCurrency, formatNumber } from "@/lib/data";
+import { useDataContext } from "@/lib/data-provider";
+import { formatCurrency, formatNumber } from "@/lib/data";
 
 export default function ReportsPage() {
+    const { historicalCosts } = useDataContext();
+
     return (
         <Card>
             <CardHeader>

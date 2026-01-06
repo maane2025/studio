@@ -20,10 +20,11 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/toaster";
-import { historicalCosts } from "@/lib/data";
+import { useDataContext } from "@/lib/data-provider";
 import { runAnomalyDetection } from "@/app/actions";
 
 export default function AlertsPage() {
+    const { historicalCosts } = useDataContext();
     const [anomalyReport, setAnomalyReport] = useState('');
     const [isAnomalyAlertOpen, setIsAnomalyAlertOpen] = useState(false);
     const [isLoadingAnomaly, setIsLoadingAnomaly] = useState(false);

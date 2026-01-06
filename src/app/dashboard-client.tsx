@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import {
   BarChart3,
   DollarSign,
@@ -221,79 +222,139 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
         }
     };
 
+    const processData = (data: any[]) => {
+         try {
+            const requiredHeaders = ['date', 'totalcost', 'unitcost', 'volume'];
+            const header = Object.keys(data[0]).map(h => h.toLowerCase().replace(/\s/g, ''));
+            const hasRequiredHeaders = requiredHeaders.every(h => header.includes(h));
+
+            if (!hasRequiredHeaders) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid Header",
+                    description: `File must have columns: ${requiredHeaders.join(', ')}`,
+                });
+                return;
+            }
+
+            const mapHeader = (h: string) => h.toLowerCase().replace(/\s/g, '');
+
+            const parsedData = data.map((row: any) => {
+                const newRow: {[key: string]: any} = {};
+                for (const key in row) {
+                    newRow[mapHeader(key)] = row[key];
+                }
+                
+                // Handle Excel's date serial number format
+                let date = newRow.date;
+                if (typeof date === 'number') {
+                    date = new Date(Math.round((date - 25569) * 864e5)).toISOString().split('T')[0];
+                } else {
+                    date = new Date(date).toISOString().split('T')[0];
+                }
+
+                return {
+                    date: date,
+                    totalCost: parseFloat(newRow.totalcost),
+                    unitCost: parseFloat(newRow.unitcost),
+                    volume: parseInt(newRow.volume, 10),
+                };
+            }).filter(d => d.date && !isNaN(d.totalCost) && !isNaN(d.unitCost) && !isNaN(d.volume));
+
+            if(parsedData.length === 0){
+                throw new Error("No valid data rows found in the file.");
+            }
+            
+            onDataUploaded(parsedData);
+            toast({
+                title: "Data Uploaded",
+                description: `${parsedData.length} records have been successfully loaded.`,
+            });
+        } catch (error) {
+            console.error("Data processing error:", error);
+            const errorMessage = error instanceof Error ? error.message : "Could not process the file.";
+            toast({
+                variant: "destructive",
+                title: "Processing Error",
+                description: errorMessage,
+            });
+        }
+    }
+
     const handleUpload = () => {
         if (!file) {
             toast({
                 variant: "destructive",
                 title: "No file selected",
-                description: "Please select a CSV file to upload.",
+                description: "Please select a CSV or Excel file to upload.",
             });
             return;
         }
 
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target?.result;
-            if (typeof text === 'string') {
+
+        if (file.name.endsWith('.csv')) {
+            reader.onload = (e) => {
+                const text = e.target?.result as string;
                 try {
                     const lines = text.trim().split('\n');
-                    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-                    const requiredHeaders = ['date', 'totalcost', 'unitcost', 'volume'];
-                    const hasRequiredHeaders = requiredHeaders.every(h => header.includes(h));
-
-                    if (!hasRequiredHeaders) {
-                         toast({
-                            variant: "destructive",
-                            title: "Invalid CSV Header",
-                            description: `File must have columns: ${requiredHeaders.join(', ')}`,
-                        });
-                        return;
-                    }
-
-                    const dateIndex = header.indexOf('date');
-                    const totalCostIndex = header.indexOf('totalcost');
-                    const unitCostIndex = header.indexOf('unitcost');
-                    const volumeIndex = header.indexOf('volume');
-
-                    const data = lines.slice(1).map(line => {
+                    const headerLine = lines.shift() as string;
+                    const header = headerLine.split(',').map(h => h.trim());
+                    const csvData = lines.map(line => {
                         const values = line.split(',');
-                        return {
-                            date: new Date(values[dateIndex]).toISOString().split('T')[0],
-                            totalCost: parseFloat(values[totalCostIndex]),
-                            unitCost: parseFloat(values[unitCostIndex]),
-                            volume: parseInt(values[volumeIndex], 10),
-                        };
-                    }).filter(d => !isNaN(d.totalCost));
-                    
-                    onDataUploaded(data);
-                    toast({
-                        title: "Data Uploaded",
-                        description: `${data.length} records have been successfully loaded.`,
+                        const row: {[key: string]: string} = {};
+                        header.forEach((h, i) => {
+                           row[h] = values[i];
+                        });
+                        return row;
                     });
-
+                    processData(csvData);
                 } catch(error) {
-                    console.error("CSV Parsing error:", error);
                      toast({
                         variant: "destructive",
                         title: "Parsing Error",
                         description: "Could not parse the CSV file. Please check its format.",
                     });
                 }
-            }
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            reader.onload = (e) => {
+                try {
+                    const data = e.target?.result;
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    processData(jsonData);
+                } catch (error) {
+                     toast({
+                        variant: "destructive",
+                        title: "Excel Parsing Error",
+                        description: "Could not parse the Excel file.",
+                    });
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Unsupported File Type",
+                description: "Please upload a .csv or .xlsx file.",
+            });
+        }
     };
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Data Import</CardTitle>
-                <CardDescription>Upload a CSV file with your cost data. The file must contain the columns: 'Date', 'TotalCost', 'UnitCost', and 'Volume'.</CardDescription>
+                <CardDescription>Upload a CSV or Excel file with your cost data. The file must contain the columns: 'Date', 'TotalCost', 'UnitCost', and 'Volume'.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
                  <Upload className="w-16 h-16 text-primary" />
                  <div className="flex w-full max-w-sm items-center gap-2">
-                    <Input type="file" accept=".csv" onChange={handleFileChange} />
+                    <Input type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onChange={handleFileChange} />
                     <Button onClick={handleUpload} disabled={!file}>Upload</Button>
                 </div>
                 <p className="text-xs text-muted-foreground max-w-md">
@@ -397,7 +458,7 @@ export default function DashboardClient() {
             toast({
                 variant: "destructive",
                 title: "No Data",
-                description: "Cannot run forecast without historical data. Please upload a CSV.",
+                description: "Cannot run forecast without historical data. Please upload a file.",
             });
             return;
         }
@@ -426,7 +487,7 @@ export default function DashboardClient() {
             toast({
                 variant: "destructive",
                 title: "No Data",
-                description: "Cannot run anomaly detection without historical data. Please upload a CSV.",
+                description: "Cannot run anomaly detection without historical data. Please upload a file.",
             });
             return;
         }
@@ -593,6 +654,7 @@ export default function DashboardClient() {
                                 <p className="max-w-md text-muted-foreground">
                                     Our AI will analyze the historical cost data to find any significant deviations, outliers, or unexpected trends that might require your attention.
                                 </p>
+
                                 <Button onClick={handleAnomalyDetection} disabled={isLoadingAnomaly}>
                                     {isLoadingAnomaly && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Run Anomaly Analysis
@@ -630,7 +692,7 @@ export default function DashboardClient() {
                                    </Table>
                                ) : (
                                    <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
-                                        <p>No data loaded. Please upload a CSV file in the "Data Import" tab.</p>
+                                        <p>No data loaded. Please upload a file in the "Data Import" tab.</p>
                                    </div>
                                )}
                            </CardContent>
@@ -661,5 +723,3 @@ export default function DashboardClient() {
     </SidebarProvider>
   );
 }
-
-    

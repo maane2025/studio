@@ -11,21 +11,31 @@ function arrayToCsv(data: Cost[]): string {
 }
 
 function parseCsv(csv: string): any[] {
+    if (!csv || typeof csv !== 'string') {
+        console.error("Invalid CSV input to parseCsv:", csv);
+        return [];
+    }
     const lines = csv.trim().split('\n');
     if (lines.length < 2) return [];
 
-    const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+    const headerLine = lines.shift() as string;
+    const header = headerLine.split(',').map(h => h.replace(/"/g, '').trim());
     
-    return lines.slice(1).map(line => {
-        const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+    return lines.map(line => {
+        // More robust CSV parsing to handle quotes
+        const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
         const obj: { [key: string]: string | number } = {};
+        
         header.forEach((key, i) => {
-            const value = values[i] ? values[i].replace(/"/g, '').trim() : '';
+            if (!key) return; // Skip empty header columns
+            const rawValue = values[i] || '';
+            const value = rawValue.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
             obj[key] = !isNaN(Number(value)) && value !== '' ? Number(value) : value;
         });
         return obj;
-    });
+    }).filter(obj => Object.keys(obj).length > 0);
 }
+
 
 export async function runForecast(historicalData: Cost[]) {
   try {
@@ -37,6 +47,12 @@ export async function runForecast(historicalData: Cost[]) {
 
     const forecast = parseCsv(result.forecastedCosts);
 
+    // Add a check to ensure forecast is not empty
+    if (!forecast || forecast.length === 0) {
+      console.error("CSV parsing resulted in empty forecast data.", { rawCsv: result.forecastedCosts });
+      return { error: "Failed to parse forecast data from AI response." };
+    }
+
     return {
       forecast: forecast,
       summary: result.analysisSummary,
@@ -44,7 +60,11 @@ export async function runForecast(historicalData: Cost[]) {
     };
   } catch (error) {
     console.error("Error in runForecast:", error);
-    return { error: "Failed to generate forecast." };
+    let errorMessage = "Failed to generate forecast.";
+    if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    return { error: errorMessage };
   }
 }
 

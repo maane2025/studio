@@ -28,7 +28,7 @@ const CostForecastingOutputSchema = z.object({
   forecastedCosts: z
     .string()
     .describe(
-      `Forecasted costs in CSV format with date and forecasted amount columns.\nEnsure the output is parsable as CSV by enclosing all values in double quotes and escaping inner double quotes.`
+      `Forecasted costs in CSV format with "Date" and "Forecasted Cost" columns.\nEnsure the output is parsable as CSV by enclosing all values in double quotes and escaping inner double quotes with another double quote.`
     ),
   analysisSummary: z
     .string()
@@ -58,19 +58,22 @@ const costForecastingPrompt = ai.definePrompt({
   Forecasting Horizon: {{forecastingHorizon}}
 
   Output Format Instructions:
-  - Ensure that the forecastedCosts CSV data is properly formatted and enclosed in double quotes. All inner double quotes MUST be escaped with another double quote.
-  - Ensure all values are enclosed in double quotes. 
-  - Ensure the date column is named \"Date\" and the forecasted cost column is named \"Forecasted Cost\".
+  - The forecastedCosts output MUST be a valid CSV string.
+  - The CSV MUST have two columns: "Date" and "Forecasted Cost".
+  - Every value in the CSV, including headers, MUST be enclosed in double quotes.
+  - Any double quotes within a value MUST be escaped by another double quote.
+  
   - Include an analysis summary highlighting key trends, potential budget overruns, and actionable recommendations for cost management.
   - Provide an overrunWarning message if a budget overrun is detected based on the forecast.
 
   Example Output:
   \`\`\`json
   {
-    \"forecastedCosts\": \"\"Date\",\"Forecasted Cost\"\n\"2024-07-01\",\"120000\"\n\"2024-08-01\",\"125000\"\"\,
-    \"analysisSummary\": \"The cost forecasting analysis indicates a rising trend in costs over the next few months. Key drivers include increased raw material prices and higher labor costs. To mitigate potential budget overruns, it is recommended to implement cost-saving measures, such as renegotiating supplier contracts and optimizing production processes.\",
-    \"overrunWarning\": \"A budget overrun is detected for the month of August. Implement cost-saving measures to address the issue.\"}
-  \`\`\`\``,
+    "forecastedCosts": "\\"Date\\",\\"Forecasted Cost\\"\\n\\"2024-07-01\\",\\"120000\\"\\n\\"2024-08-01\\",\\"125000\\"",
+    "analysisSummary": "The cost forecasting analysis indicates a rising trend in costs over the next few months. Key drivers include increased raw material prices and higher labor costs. To mitigate potential budget overruns, it is recommended to implement cost-saving measures, such as renegotiating supplier contracts and optimizing production processes.",
+    "overrunWarning": "A budget overrun is detected for the month of August. Implement cost-saving measures to address the issue."
+  }
+  \`\`\``,
 });
 
 const costForecastingFlow = ai.defineFlow(
@@ -84,4 +87,5 @@ const costForecastingFlow = ai.defineFlow(
     return output!;
   }
 );
+
 

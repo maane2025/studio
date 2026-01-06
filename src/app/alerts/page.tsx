@@ -33,8 +33,8 @@ export default function AlertsPage() {
         if(historicalCosts.length === 0) {
             toast({
                 variant: "destructive",
-                title: "No Data",
-                description: "Cannot run anomaly detection without historical data. Please upload a file on the Dashboard.",
+                title: "Aucune Donnée",
+                description: "Impossible d'exécuter la détection d'anomalies sans données historiques. Veuillez télécharger un fichier sur le Tableau de Bord.",
             });
             return;
         }
@@ -43,7 +43,7 @@ export default function AlertsPage() {
         if (result.error) {
             toast({
                 variant: "destructive",
-                title: "Analysis Failed",
+                title: "Échec de l'Analyse",
                 description: result.error,
             });
         } else if (result.report) {
@@ -57,18 +57,18 @@ export default function AlertsPage() {
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Anomaly Detection</CardTitle>
-                    <CardDescription>Identify unusual fluctuations in your cost data using AI.</CardDescription>
+                    <CardTitle>Détection d'Anomalies</CardTitle>
+                    <CardDescription>Identifiez les fluctuations inhabituelles dans vos données de coûts à l'aide de l'IA.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
                     <ShieldAlert className="w-16 h-16 text-primary" />
                     <p className="max-w-md text-muted-foreground">
-                        Our AI will analyze the historical cost data to find any significant deviations, outliers, or unexpected trends that might require your attention.
+                        Notre IA analysera les données de coûts historiques pour trouver toute déviation significative, valeur aberrante ou tendance inattendue qui pourrait nécessiter votre attention.
                     </p>
 
                     <Button onClick={handleAnomalyDetection} disabled={isLoadingAnomaly}>
                         {isLoadingAnomaly && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Run Anomaly Analysis
+                        Lancer l'Analyse d'Anomalies
                     </Button>
                 </CardContent>
             </Card>
@@ -76,9 +76,9 @@ export default function AlertsPage() {
             <AlertDialog open={isAnomalyAlertOpen} onOpenChange={setIsAnomalyAlertOpen}>
                 <AlertDialogContent className="max-w-2xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Anomaly Detection Report</AlertDialogTitle>
+                        <AlertDialogTitle>Rapport de Détection d'Anomalies</AlertDialogTitle>
                         <AlertDialogDescription>
-                            The following anomalies were detected in the cost data.
+                            Les anomalies suivantes ont été détectées dans les données de coûts.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="max-h-[60vh] overflow-y-auto pr-4">
@@ -87,7 +87,7 @@ export default function AlertsPage() {
                         </pre>
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogAction>Close</AlertDialogAction>
+                        <AlertDialogAction>Fermer</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

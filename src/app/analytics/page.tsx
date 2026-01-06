@@ -28,8 +28,8 @@ export default function AnalyticsPage() {
         const estimatedFixedCost = 50000 + (Math.random() - 0.5) * 2000;
         const estimatedVariableCost = lastMonth.totalCost - estimatedFixedCost;
         const costComposition = [
-            { name: 'Fixed Costs', value: estimatedFixedCost },
-            { name: 'Variable Costs', value: estimatedVariableCost },
+            { name: 'Coûts Fixes', value: estimatedFixedCost },
+            { name: 'Coûts Variables', value: estimatedVariableCost },
         ];
 
         // 2. Cost vs Volume
@@ -37,8 +37,8 @@ export default function AnalyticsPage() {
         
         // 3. Monthly trends (last 12 months)
         const monthlyTrends = historicalCosts.slice(-12).map(d => ({
-            name: new Date(d.date).toLocaleDateString('en-US', { month: 'short' }),
-            'Total Cost': d.totalCost
+            name: new Date(d.date).toLocaleDateString('fr-FR', { month: 'short' }),
+            'Coût Total': d.totalCost
         }));
 
         // 4. Unit Cost Distribution
@@ -87,10 +87,10 @@ export default function AnalyticsPage() {
         return (
              <Card>
                 <CardHeader>
-                    <CardTitle>Analytics</CardTitle>
+                    <CardTitle>Analytique</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>No data available. Please import data on the Dashboard page.</p>
+                    <p>Aucune donnée disponible. Veuillez importer des données sur la page Tableau de bord.</p>
                 </CardContent>
             </Card>
         )
@@ -100,8 +100,8 @@ export default function AnalyticsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
             <Card>
                 <CardHeader>
-                    <CardTitle>Cost Composition</CardTitle>
-                    <CardDescription>Estimated breakdown of fixed vs. variable costs for the latest month.</CardDescription>
+                    <CardTitle>Composition des Coûts</CardTitle>
+                    <CardDescription>Répartition estimée des coûts fixes et variables pour le dernier mois.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -129,17 +129,17 @@ export default function AnalyticsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Cost vs. Production Volume</CardTitle>
-                    <CardDescription>Relationship between production volume and total cost.</CardDescription>
+                    <CardTitle>Coût vs. Volume de Production</CardTitle>
+                    <CardDescription>Relation entre le volume de production et le coût total.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                             <CartesianGrid />
-                            <XAxis type="number" dataKey="volume" name="Volume" unit=" units" tickFormatter={(val) => formatNumber(val)} />
-                            <YAxis type="number" dataKey="cost" name="Cost" unit=" USD" tickFormatter={(val) => `$${Number(val)/1000}k`}/>
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(value, name) => name === 'Cost' ? formatCurrency(value as number) : formatNumber(value as number)} />
-                            <Scatter name="Cost Data" data={analyticsData.costVsVolume} fill="hsl(var(--primary))" />
+                            <XAxis type="number" dataKey="volume" name="Volume" unit=" unités" tickFormatter={(val) => formatNumber(val)} />
+                            <YAxis type="number" dataKey="cost" name="Coût" unit=" USD" tickFormatter={(val) => `$${Number(val)/1000}k`}/>
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(value, name) => name === 'Coût' ? formatCurrency(value as number) : formatNumber(value as number)} />
+                            <Scatter name="Données de coût" data={analyticsData.costVsVolume} fill="hsl(var(--primary))" />
                         </ScatterChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -147,8 +147,8 @@ export default function AnalyticsPage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Monthly Cost Trend</CardTitle>
-                    <CardDescription>Total cost over the last 12 months.</CardDescription>
+                    <CardTitle>Tendance Mensuelle des Coûts</CardTitle>
+                    <CardDescription>Coût total au cours des 12 derniers mois.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
                             <YAxis tickFormatter={(val) => `$${Number(val)/1000}k`}/>
                             <Tooltip formatter={(value) => formatCurrency(value as number)} />
                             <Legend />
-                            <Bar dataKey="Total Cost" fill="hsl(var(--accent))" />
+                            <Bar dataKey="Coût Total" fill="hsl(var(--accent))" />
                         </BarChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -166,8 +166,8 @@ export default function AnalyticsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Unit Cost Distribution</CardTitle>
-                    <CardDescription>Frequency of different unit cost ranges.</CardDescription>
+                    <CardTitle>Distribution du Coût Unitaire</CardTitle>
+                    <CardDescription>Fréquence des différentes fourchettes de coûts unitaires.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <ResponsiveContainer width="100%" height={300}>
@@ -176,7 +176,7 @@ export default function AnalyticsPage() {
                             <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                             <YAxis allowDecimals={false} />
                             <Tooltip />
-                            <Legend verticalAlign="top" payload={[{ value: 'Number of Occurrences', type: 'line', color: 'hsl(var(--primary))' }]} />
+                            <Legend verticalAlign="top" payload={[{ value: 'Nombre d\'occurrences', type: 'line', color: 'hsl(var(--primary))' }]} />
                             <Bar dataKey="count" fill="hsl(var(--primary))" name="Occurrences" />
                         </BarChart>
                     </ResponsiveContainer>
@@ -185,5 +185,3 @@ export default function AnalyticsPage() {
         </div>
     );
 }
-
-    

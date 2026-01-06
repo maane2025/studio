@@ -42,7 +42,7 @@ export async function runForecast(historicalData: Cost[]) {
     const csvData = arrayToCsv(historicalData);
     const result = await forecastCosts({
       costData: csvData,
-      forecastingHorizon: "6 months",
+      forecastingHorizon: "6 mois",
     });
 
     const forecast = parseCsv(result.forecastedCosts);
@@ -50,7 +50,7 @@ export async function runForecast(historicalData: Cost[]) {
     // Add a check to ensure forecast is not empty
     if (!forecast || forecast.length === 0) {
       console.error("CSV parsing resulted in empty forecast data.", { rawCsv: result.forecastedCosts });
-      return { error: "Failed to parse forecast data from AI response." };
+      return { error: "Échec de l'analyse des données de prévision de la réponse de l'IA." };
     }
 
     return {
@@ -60,7 +60,7 @@ export async function runForecast(historicalData: Cost[]) {
     };
   } catch (error) {
     console.error("Error in runForecast:", error);
-    let errorMessage = "Failed to generate forecast.";
+    let errorMessage = "Échec de la génération de la prévision.";
     if (error instanceof Error) {
         errorMessage = error.message;
     }
@@ -73,12 +73,12 @@ export async function runAnomalyDetection(historicalData: Cost[]) {
         const csvData = arrayToCsv(historicalData);
         const result = await detectAnomalies({
             costData: csvData,
-            description: "Monthly organizational costs including total cost, unit cost, and production volume."
+            description: "Coûts organisationnels mensuels comprenant le coût total, le coût unitaire et le volume de production."
         });
         return { report: result.anomalyReport };
     } catch (error) {
         console.error("Error in runAnomalyDetection:", error);
-        let errorMessage = "Failed to run anomaly detection.";
+        let errorMessage = "Échec de l'exécution de la détection des anomalies.";
         if (error instanceof Error) {
             errorMessage = error.message;
         }

@@ -43,10 +43,10 @@ const AppSidebar = () => {
     const pathname = usePathname();
 
     const menuItems = [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-        { href: '/reports', label: 'Reports', icon: TableIcon },
-        { href: '/alerts', label: 'Alerts', icon: ShieldAlert },
+        { href: '/dashboard', label: 'Tableau de Bord', icon: LayoutDashboard },
+        { href: '/analytics', label: 'Analytique', icon: BarChart3 },
+        { href: '/reports', label: 'Rapports', icon: TableIcon },
+        { href: '/alerts', label: 'Alertes', icon: ShieldAlert },
     ];
 
     return (
@@ -80,15 +80,15 @@ const Header = () => {
     const getPageTitle = () => {
         switch (pathname) {
             case '/dashboard':
-                return 'Dashboard';
+                return 'Tableau de Bord';
             case '/analytics':
-                return 'Analytics';
+                return 'Analytique';
             case '/reports':
-                return 'Reports';
+                return 'Rapports';
             case '/alerts':
-                return 'Alerts';
+                return 'Alertes';
             default:
-                return 'Dashboard';
+                return 'Tableau de Bord';
         }
     }
 
@@ -102,7 +102,7 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
-                <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" />
+                <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Utilisateur" />
                 <AvatarFallback>U</AvatarFallback>
                 </Avatar>
             </Button>
@@ -120,17 +120,17 @@ const Header = () => {
             <DropdownMenuGroup>
                 <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>Profil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>Paramètres</span>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>Se déconnecter</span>
             </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

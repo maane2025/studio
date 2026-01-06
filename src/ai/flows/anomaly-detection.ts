@@ -15,15 +15,15 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AnomalyDetectionInputSchema = z.object({
-  costData: z.string().describe('Historical cost data in CSV format.'),
-  description: z.string().describe('Description of the cost data.'),
+  costData: z.string().describe('Données de coûts historiques au format CSV.'),
+  description: z.string().describe('Description des données de coûts.'),
 });
 
 export type AnomalyDetectionInput = z.infer<typeof AnomalyDetectionInputSchema>;
 
 const AnomalyDetectionOutputSchema = z.object({
-  anomalyReport: z.string().describe('A report of detected anomalies, with explanations.'),
-  decisionSupportMessage: z.string().describe('A message to help cost controllers make decisions about the anomalies.'),
+  anomalyReport: z.string().describe('Un rapport des anomalies détectées, avec des explications.'),
+  decisionSupportMessage: z.string().describe('Un message pour aider les contrôleurs de coûts à prendre des décisions concernant les anomalies.'),
 });
 
 export type AnomalyDetectionOutput = z.infer<typeof AnomalyDetectionOutputSchema>;
@@ -36,19 +36,19 @@ const anomalyDetectionPrompt = ai.definePrompt({
   name: 'anomalyDetectionPrompt',
   input: {schema: AnomalyDetectionInputSchema},
   output: {schema: AnomalyDetectionOutputSchema},
-  prompt: `You are an AI assistant specialized in financial anomaly detection.
-  Your task is to analyze the provided cost data and identify any unusual fluctuations or anomalies.
-  Provide a report summarizing the detected anomalies, including potential reasons and severity.
+  prompt: `Vous êtes un assistant IA spécialisé dans la détection d'anomalies financières.
+  Votre tâche est d'analyser les données de coûts fournies et d'identifier toute fluctuation ou anomalie inhabituelle.
+  Fournissez un rapport résumant les anomalies détectées, y compris les raisons potentielles et la gravité.
 
-  Description of the data: {{{description}}}
-  Cost Data: {{{costData}}}
+  Description des données : {{{description}}}
+  Données de coûts : {{{costData}}}
   
-  Format the anomaly report to be easily understandable by a cost controller. 
-  Include the list of anomalies, with a description, potential reasons, and the severity.
-  Make sure that the anomaly report includes the description and cost data information.
-  End the report with a summary of the findings and recommendations.
+  Formatez le rapport d'anomalie pour qu'il soit facilement compréhensible par un contrôleur de coûts.
+  Incluez la liste des anomalies, avec une description, les raisons potentielles et la gravité.
+  Assurez-vous que le rapport d'anomalie inclut la description et les informations sur les données de coûts.
+  Terminez le rapport par un résumé des conclusions et des recommandations.
 
-  Based on the anomaly report, provide a concise decision support message to help cost controllers make informed decisions about the anomalies. Suggest potential actions or investigations based on the detected anomalies.
+  Sur la base du rapport d'anomalie, fournissez un message concis d'aide à la décision pour aider les contrôleurs de coûts à prendre des décisions éclairées concernant les anomalies. Suggérez des actions ou des enquêtes potentielles basées sur les anomalies détectées.
   `,
 });
 

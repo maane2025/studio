@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { Toaster, toast } from "@/components/ui/toaster"
+import { toast, Toaster } from "@/components/ui/toaster"
 import { useDataContext } from '@/lib/data-provider';
 import { formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
@@ -83,7 +83,7 @@ const ChangeFooter = ({ change, changeType, isIncreaseGood = false }: { change: 
                 {changeType === 'increase' ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {change}
             </span>
-            vs last month
+            vs le mois dernier
         </p>
     );
 };
@@ -102,8 +102,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
             if (data.length === 0) {
                  toast({
                     variant: "destructive",
-                    title: "Empty File",
-                    description: "The uploaded file is empty or could not be read.",
+                    title: "Fichier Vide",
+                    description: "Le fichier téléchargé est vide ou n'a pas pu être lu.",
                 });
                 return;
             }
@@ -114,8 +114,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
             if (!hasRequiredHeaders) {
                 toast({
                     variant: "destructive",
-                    title: "Invalid Header",
-                    description: `File must have columns: date, totalcost, unitcost, volume`,
+                    title: "En-tête Invalide",
+                    description: `Le fichier doit contenir les colonnes : date, totalcost, unitcost, volume`,
                 });
                 return;
             }
@@ -154,20 +154,20 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
             }).filter(d => d.date && !isNaN(d.totalCost) && !isNaN(d.unitCost) && !isNaN(d.volume));
 
             if(parsedData.length === 0){
-                throw new Error("No valid data rows found in the file. Check data formats and headers.");
+                throw new Error("Aucune ligne de données valide trouvée dans le fichier. Vérifiez les formats de données et les en-têtes.");
             }
             
             onDataUploaded(parsedData.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
             toast({
-                title: "Data Uploaded",
-                description: `${parsedData.length} records have been successfully loaded.`,
+                title: "Données Téléchargées",
+                description: `${parsedData.length} enregistrements ont été chargés avec succès.`,
             });
         } catch (error) {
             console.error("Data processing error:", error);
-            const errorMessage = error instanceof Error ? error.message : "Could not process the file.";
+            const errorMessage = error instanceof Error ? error.message : "Impossible de traiter le fichier.";
             toast({
                 variant: "destructive",
-                title: "Processing Error",
+                title: "Erreur de Traitement",
                 description: errorMessage,
             });
         }
@@ -177,8 +177,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
         if (!file) {
             toast({
                 variant: "destructive",
-                title: "No file selected",
-                description: "Please select a CSV or Excel file to upload.",
+                title: "Aucun fichier sélectionné",
+                description: "Veuillez sélectionner un fichier CSV ou Excel à télécharger.",
             });
             return;
         }
@@ -204,8 +204,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
                 } catch(error) {
                      toast({
                         variant: "destructive",
-                        title: "Parsing Error",
-                        description: "Could not parse the CSV file. Please check its format.",
+                        title: "Erreur d'Analyse",
+                        description: "Impossible d'analyser le fichier CSV. Veuillez vérifier son format.",
                     });
                 }
             };
@@ -222,8 +222,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
                 } catch (error) {
                      toast({
                         variant: "destructive",
-                        title: "Excel Parsing Error",
-                        description: "Could not parse the Excel file.",
+                        title: "Erreur d'Analyse Excel",
+                        description: "Impossible d'analyser le fichier Excel.",
                     });
                 }
             };
@@ -231,8 +231,8 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
         } else {
              toast({
                 variant: "destructive",
-                title: "Unsupported File Type",
-                description: "Please upload a .csv or .xlsx file.",
+                title: "Type de Fichier non Supporté",
+                description: "Veuillez télécharger un fichier .csv ou .xlsx.",
             });
         }
     };
@@ -240,17 +240,17 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Data Import</CardTitle>
-                <CardDescription>Upload a CSV or Excel file with your cost data. The file must contain the columns: 'Date', 'TotalCost', 'UnitCost', and 'Volume'.</CardDescription>
+                <CardTitle>Importation de Données</CardTitle>
+                <CardDescription>Téléchargez un fichier CSV ou Excel avec vos données de coûts. Le fichier doit contenir les colonnes : 'Date', 'TotalCost', 'UnitCost', et 'Volume'.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
                  <Upload className="w-16 h-16 text-primary" />
                  <div className="flex w-full max-w-sm items-center gap-2">
                     <Input type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" onChange={handleFileChange} />
-                    <Button onClick={handleUpload} disabled={!file}>Upload</Button>
+                    <Button onClick={handleUpload} disabled={!file}>Télécharger</Button>
                 </div>
                 <p className="text-xs text-muted-foreground max-w-md">
-                    Your existing data will be replaced by the data in the uploaded file. The app will then use this new dataset for all analyses and forecasts.
+                    Vos données existantes seront remplacées par les données du fichier téléchargé. L'application utilisera alors ce nouvel ensemble de données pour toutes les analyses et prévisions.
                 </p>
             </CardContent>
         </Card>
@@ -325,16 +325,16 @@ export default function DashboardClient() {
     }, [historicalCosts, forecastData]);
 
     const chartData = useMemo(() => {
-        const historical = historicalCosts.map(d => ({ date: d.date, 'Actual Cost': d.totalCost }));
+        const historical = historicalCosts.map(d => ({ date: d.date, 'Coût Actuel': d.totalCost }));
         if (forecastData.length === 0) return historical;
 
-        const forecast = forecastData.map(d => ({ date: d.Date, 'Forecasted Cost': d['Forecasted Cost'] }));
+        const forecast = forecastData.map(d => ({ date: d.Date, 'Coût Prévu': d['Forecasted Cost'] }));
         
         const combined = [...historical];
         forecast.forEach(f => {
             const existing = combined.find(h => h.date === f.date);
             if (existing) {
-                (existing as any)['Forecasted Cost'] = f['Forecasted Cost'];
+                (existing as any)['Coût Prévu'] = f['Forecasted Cost'];
             } else {
                 combined.push(f);
             }
@@ -346,8 +346,8 @@ export default function DashboardClient() {
         if(historicalCosts.length === 0) {
             toast({
                 variant: "destructive",
-                title: "No Data",
-                description: "Cannot run forecast without historical data. Please upload a file.",
+                title: "Aucune Donnée",
+                description: "Impossible d'exécuter la prévision sans données historiques. Veuillez télécharger un fichier.",
             });
             return;
         }
@@ -356,7 +356,7 @@ export default function DashboardClient() {
         if (result.error) {
             toast({
                 variant: "destructive",
-                title: "Forecast Failed",
+                title: "Échec de la Prévision",
                 description: result.error,
             });
         } else if (result.forecast) {
@@ -364,8 +364,8 @@ export default function DashboardClient() {
             setAnalysisSummary(result.summary || '');
             setOverrunWarning(result.warning || '');
             toast({
-                title: "Forecast Generated",
-                description: "Future cost predictions are now available.",
+                title: "Prévision Générée",
+                description: "Les prévisions de coûts futurs sont maintenant disponibles.",
             });
         }
         setIsLoadingForecast(false);
@@ -387,38 +387,38 @@ export default function DashboardClient() {
     <>
         <Tabs defaultValue="overview">
             <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="data-import">Data Import</TabsTrigger>
+                <TabsTrigger value="overview">Aperçu</TabsTrigger>
+                <TabsTrigger value="data-import">Importation de Données</TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <KpiCard 
-                        title="Total Cost (Current)" 
+                        title="Coût Total (Actuel)" 
                         value={formatCurrency(metrics.totalCost)} 
                         icon={DollarSign}
                         footer={<ChangeFooter change={metrics.costChange} changeType={metrics.costChangeType} />}
                     />
                     <KpiCard 
-                        title="Avg. Unit Cost" 
+                        title="Coût Unitaire Moyen" 
                         value={formatCurrency(metrics.avgUnitCost)} 
                         icon={Package}
                         footer={<ChangeFooter change={metrics.unitCostChange} changeType={metrics.unitCostChangeType} />}
                     />
                     <KpiCard 
-                        title="Production Volume" 
+                        title="Volume de Production" 
                         value={formatNumber(metrics.productionVolume)}
                         icon={BarChart3} 
                         footer={<ChangeFooter change={metrics.volumeChange} changeType={metrics.volumeChangeType} isIncreaseGood={true} />}
                     />
                     <KpiCard 
-                        title="Cost Forecast" 
+                        title="Prévision de Coût" 
                         value={metrics.nextMonthForecast > 0 ? formatCurrency(metrics.nextMonthForecast) : "N/A"}
                         icon={TrendingUp} 
                         footer={
                             <p className="text-xs text-muted-foreground">
                                 {metrics.nextMonthForecast > 0 
-                                    ? <>Next month / {formatCurrency(metrics.totalForecastCost)} total</>
-                                    : "Run forecast to see"}
+                                    ? <>Prochain mois / {formatCurrency(metrics.totalForecastCost)} total</>
+                                    : "Lancer la prévision pour voir"}
                             </p>
                         }
                     />
@@ -427,21 +427,21 @@ export default function DashboardClient() {
                     <Card className="lg:col-span-4">
                         <CardHeader className="flex flex-row items-center">
                             <div className="grid gap-2">
-                                <CardTitle>Cost Analysis</CardTitle>
+                                <CardTitle>Analyse des Coûts</CardTitle>
                                 <CardDescription>
-                                    Historical and forecasted costs over time.
+                                    Coûts historiques et prévus au fil du temps.
                                 </CardDescription>
                             </div>
                             <Button onClick={handleForecast} disabled={isLoadingForecast} size="sm" className="ml-auto gap-1">
                                 {isLoadingForecast && <Loader2 className="h-4 w-4 animate-spin" />}
-                                Forecast Costs
+                                Prévoir les Coûts
                             </Button>
                         </CardHeader>
                         <CardContent className="pl-2">
                             <ResponsiveContainer width="100%" height={350}>
                                 <LineChart data={chartData}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(str) => new Date(str).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })} />
+                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(str) => new Date(str).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })} />
                                     <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `$${Number(val)/1000}k`} />
                                     <Tooltip
                                         contentStyle={{
@@ -449,37 +449,37 @@ export default function DashboardClient() {
                                             border: '1px solid hsl(var(--border))',
                                             borderRadius: 'var(--radius)',
                                         }}
-                                        labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { month: 'long', year: 'numeric'})}
+                                        labelFormatter={(label) => new Date(label).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric'})}
                                         formatter={(value) => formatCurrency(value as number)}
                                     />
                                     <Legend />
-                                    <Line type="monotone" dataKey="Actual Cost" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                                    {forecastData.length > 0 && <Line type="monotone" dataKey="Forecasted Cost" stroke="hsl(var(--accent))" strokeWidth={2} strokeDasharray="5 5" />}
+                                    <Line type="monotone" dataKey="Coût Actuel" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                    {forecastData.length > 0 && <Line type="monotone" dataKey="Coût Prévu" stroke="hsl(var(--accent))" strokeWidth={2} strokeDasharray="5 5" />}
                                 </LineChart>
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
                     <Card className="lg:col-span-3">
                         <CardHeader>
-                            <CardTitle>Decision Support</CardTitle>
+                            <CardTitle>Aide à la Décision</CardTitle>
                             <CardDescription>
-                                AI-powered insights and recommendations.
+                                Informations et recommandations basées sur l'IA.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4">
                             {historicalCosts.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-                                    <p>Please upload data to generate insights.</p>
+                                    <p>Veuillez télécharger des données pour générer des informations.</p>
                                 </div>
                             ) : !analysisSummary && !overrunWarning ? (
                                 <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-                                    <p>Run a forecast to generate insights.</p>
+                                    <p>Lancez une prévision pour générer des informations.</p>
                                 </div>
                             ) : null}
                             {overrunWarning && (
                                 <Alert variant="destructive">
                                     <ShieldAlert className="h-4 w-4" />
-                                    <AlertTitle>Budget Overrun Warning!</AlertTitle>
+                                    <AlertTitle>Alerte de Dépassement de Budget !</AlertTitle>
                                     <AlertDescription>
                                         {overrunWarning}
                                     </AlertDescription>
@@ -488,7 +488,7 @@ export default function DashboardClient() {
                             {analysisSummary && (
                                 <Alert>
                                     <BarChart3 className="h-4 w-4" />
-                                    <AlertTitle>Analysis Summary</AlertTitle>
+                                    <AlertTitle>Résumé de l'Analyse</AlertTitle>
                                     <AlertDescription>
                                         {analysisSummary}
                                     </AlertDescription>

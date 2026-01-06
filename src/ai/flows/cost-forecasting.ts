@@ -16,11 +16,11 @@ const CostForecastingInputSchema = z.object({
   costData: z
     .string()
     .describe(
-      'Historical cost data in CSV format, including dates, cost types, and amounts.'
+      'Données de coûts historiques au format CSV, incluant les dates, les types de coûts et les montants.'
     ),
   forecastingHorizon: z
     .string()
-    .describe('The period for forecasting costs in months, e.g., 6 months, 12 months.'),
+    .describe('La période de prévision des coûts en mois, ex: 6 mois, 12 mois.'),
 });
 export type CostForecastingInput = z.infer<typeof CostForecastingInputSchema>;
 
@@ -28,14 +28,14 @@ const CostForecastingOutputSchema = z.object({
   forecastedCosts: z
     .string()
     .describe(
-      `Forecasted costs in CSV format with "Date" and "Forecasted Cost" columns.\nEnsure the output is parsable as CSV by enclosing all values in double quotes and escaping inner double quotes with another double quote.`
+      `Coûts prévus au format CSV avec les colonnes "Date" et "Forecasted Cost".\nAssurez-vous que la sortie est analysable en tant que CSV en entourant toutes les valeurs de guillemets doubles et en échappant les guillemets doubles internes avec un autre guillemet double.`
     ),
   analysisSummary: z
     .string()
     .describe(
-      'A summary of the cost forecasting analysis, including key trends, potential budget overruns, and recommendations.'
+      'Un résumé de l\'analyse des prévisions de coûts, incluant les tendances clés, les dépassements de budget potentiels et les recommandations.'
     ),
-  overrunWarning: z.string().describe('A warning message if a budget overrun is detected.'),
+  overrunWarning: z.string().describe('Un message d\'avertissement si un dépassement de budget est détecté.'),
 });
 export type CostForecastingOutput = z.infer<typeof CostForecastingOutputSchema>;
 
@@ -47,31 +47,31 @@ const costForecastingPrompt = ai.definePrompt({
   name: 'costForecastingPrompt',
   input: {schema: CostForecastingInputSchema},
   output: {schema: CostForecastingOutputSchema},
-  prompt: `You are a financial analyst expert in cost forecasting.
+  prompt: `Vous êtes un analyste financier expert en prévision de coûts.
 
-  Analyze the provided historical cost data to forecast future costs and identify potential budget overruns.
-  Provide the forecasted costs in CSV format and a summary of your analysis, including key trends, and recommendations.
+  Analysez les données de coûts historiques fournies pour prévoir les coûts futurs et identifier les dépassements budgétaires potentiels.
+  Fournissez les coûts prévus au format CSV et un résumé de votre analyse, y compris les tendances clés et les recommandations.
 
-  Input Cost Data (CSV):
+  Données de coûts d'entrée (CSV) :
   {{costData}}
 
-  Forecasting Horizon: {{forecastingHorizon}}
+  Horizon de prévision : {{forecastingHorizon}}
 
-  Output Format Instructions:
-  - The forecastedCosts output MUST be a valid CSV string.
-  - The CSV MUST have two columns: "Date" and "Forecasted Cost".
-  - Every value in the CSV, including headers, MUST be enclosed in double quotes.
-  - Any double quotes within a value MUST be escaped by another double quote.
+  Instructions de format de sortie :
+  - La sortie forecastedCosts DOIT être une chaîne CSV valide.
+  - Le CSV DOIT avoir deux colonnes : "Date" et "Forecasted Cost".
+  - Chaque valeur dans le CSV, y compris les en-têtes, DOIT être entourée de guillemets doubles.
+  - Tout guillemet double à l'intérieur d'une valeur DOIT être échappé par un autre guillemet double.
   
-  - Include an analysis summary highlighting key trends, potential budget overruns, and actionable recommendations for cost management.
-  - Provide an overrunWarning message if a budget overrun is detected based on the forecast.
+  - Incluez un résumé d'analyse mettant en évidence les tendances clés, les dépassements budgétaires potentiels et des recommandations concrètes pour la gestion des coûts.
+  - Fournissez un message overrunWarning si un dépassement de budget est détecté sur la base de la prévision.
 
-  Example Output:
+  Exemple de sortie :
   \`\`\`json
   {
     "forecastedCosts": "\\"Date\\",\\"Forecasted Cost\\"\\n\\"2024-07-01\\",\\"120000\\"\\n\\"2024-08-01\\",\\"125000\\"",
-    "analysisSummary": "The cost forecasting analysis indicates a rising trend in costs over the next few months. Key drivers include increased raw material prices and higher labor costs. To mitigate potential budget overruns, it is recommended to implement cost-saving measures, such as renegotiating supplier contracts and optimizing production processes.",
-    "overrunWarning": "A budget overrun is detected for the month of August. Implement cost-saving measures to address the issue."
+    "analysisSummary": "L'analyse des prévisions de coûts indique une tendance à la hausse des coûts au cours des prochains mois. Les principaux moteurs sont l'augmentation des prix des matières premières et des coûts de main-d'œuvre plus élevés. Pour atténuer les dépassements budgétaires potentiels, il est recommandé de mettre en œuvre des mesures de réduction des coûts, telles que la renégociation des contrats avec les fournisseurs et l'optimisation des processus de production.",
+    "overrunWarning": "Un dépassement de budget est détecté pour le mois d'août. Mettez en œuvre des mesures de réduction des coûts pour résoudre le problème."
   }
   \`\`\``,
 });
@@ -87,5 +87,3 @@ const costForecastingFlow = ai.defineFlow(
     return output!;
   }
 );
-
-

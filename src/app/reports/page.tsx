@@ -24,9 +24,9 @@ export default function ReportsPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Historical Cost Report</CardTitle>
+                <CardTitle>Rapport des Coûts Historiques</CardTitle>
                 <CardDescription>
-                    A detailed view of all historical cost data loaded into the system.
+                    Une vue détaillée de toutes les données de coûts historiques chargées dans le système.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -35,15 +35,15 @@ export default function ReportsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead className="text-right">Total Cost</TableHead>
-                                <TableHead className="text-right">Unit Cost</TableHead>
+                                <TableHead className="text-right">Coût Total</TableHead>
+                                <TableHead className="text-right">Coût Unitaire</TableHead>
                                 <TableHead className="text-right">Volume</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {[...historicalCosts].reverse().map((cost) => (
                                 <TableRow key={cost.date}>
-                                    <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
+                                    <TableCell>{new Date(cost.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
                                     <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
@@ -53,7 +53,7 @@ export default function ReportsPage() {
                     </Table>
                 ) : (
                     <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
-                        <p>No data available. Please import data on the Dashboard page.</p>
+                        <p>Aucune donnée disponible. Veuillez importer des données sur la page Tableau de bord.</p>
                     </div>
                 )}
             </CardContent>

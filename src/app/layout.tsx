@@ -6,7 +6,7 @@ import { DataProvider } from '@/lib/data-provider';
 
 export const metadata: Metadata = {
   title: 'CostPilotAI',
-  description: 'Intelligent cost optimization and forecasting for performance management.',
+  description: 'Optimisation et prévision intelligentes des coûts pour le pilotage de la performance.',
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

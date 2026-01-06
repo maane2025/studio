@@ -51,7 +51,7 @@ const generateHistoricalCosts = (): Cost[] => {
 export const historicalCosts: Cost[] = generateHistoricalCosts();
 
 export const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
@@ -60,5 +60,5 @@ export const formatCurrency = (value: number) => {
 };
 
 export const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-US').format(value);
+    return new Intl.NumberFormat('fr-FR').format(value);
 };

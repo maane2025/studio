@@ -4,16 +4,11 @@ import * as XLSX from 'xlsx';
 import {
   BarChart3,
   DollarSign,
-  LayoutDashboard,
   Loader2,
-  LogOut,
   Package,
-  Settings,
   ShieldAlert,
-  Table as TableIcon,
   TrendingDown,
   TrendingUp,
-  User,
   Upload,
 } from 'lucide-react';
 import {
@@ -27,19 +22,6 @@ import {
   Legend
 } from 'recharts';
 
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarInset,
-  SidebarTrigger,
-  useSidebar,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -48,15 +30,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
 import {
   Table,
   TableBody,
@@ -86,100 +60,10 @@ import { Toaster, toast } from "@/components/ui/toaster"
 import { historicalCosts as initialHistoricalCosts, formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
 import { runForecast, runAnomalyDetection } from './actions';
-import { Logo } from '@/components/icons';
 
 type ForecastData = {
   Date: string;
   'Forecasted Cost': number;
-};
-
-const AppSidebar = () => {
-    const { open } = useSidebar();
-    return (
-      <Sidebar>
-        <SidebarHeader>
-            <div className={`flex items-center gap-2 ${open ? 'w-full' : 'w-0'}`}>
-                <Logo className="size-7 text-primary" />
-                <span className="font-semibold text-lg whitespace-nowrap">CostPilotAI</span>
-            </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive tooltip="Dashboard">
-                <LayoutDashboard />
-                Dashboard
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Analytics">
-                <BarChart3 />
-                Analytics
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Reports">
-                <TableIcon />
-                Reports
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Alerts">
-                <ShieldAlert />
-                Alerts
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-    );
-  };
-  
-const Header = () => {
-return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-    <SidebarTrigger className="md:hidden" />
-    <div className="w-full flex-1">
-        <h1 className="text-lg font-semibold md:text-2xl">Dashboard</h1>
-    </div>
-    <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-            <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-        </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-xs leading-none text-muted-foreground">
-                john.doe@example.com
-            </p>
-            </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-            <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-            </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-        </DropdownMenuItem>
-        </DropdownMenuContent>
-    </DropdownMenu>
-    </header>
-);
 };
   
 const KpiCard = ({ title, value, footer, icon: Icon }: { title: string; value: string; footer?: React.ReactNode; icon: React.ElementType }) => {
@@ -518,206 +402,200 @@ export default function DashboardClient() {
     }
 
   return (
-    <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-            <Header />
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                <Tabs defaultValue="overview">
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="data-import">Data Import</TabsTrigger>
-                        <TabsTrigger value="anomaly-detection">Anomaly Detection</TabsTrigger>
-                        <TabsTrigger value="raw-data">Raw Data</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="overview">
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            <KpiCard 
-                                title="Total Cost (Current)" 
-                                value={formatCurrency(metrics.totalCost)} 
-                                icon={DollarSign}
-                                footer={<ChangeFooter change={metrics.costChange} changeType={metrics.costChangeType} />}
-                            />
-                            <KpiCard 
-                                title="Avg. Unit Cost" 
-                                value={formatCurrency(metrics.avgUnitCost)} 
-                                icon={Package}
-                                footer={<ChangeFooter change={metrics.unitCostChange} changeType={metrics.unitCostChangeType} />}
-                            />
-                            <KpiCard 
-                                title="Production Volume" 
-                                value={formatNumber(metrics.productionVolume)}
-                                icon={BarChart3} 
-                                footer={<ChangeFooter change={metrics.volumeChange} changeType={metrics.volumeChangeType} isIncreaseGood={true} />}
-                            />
-                            <KpiCard 
-                                title="Cost Forecast" 
-                                value={metrics.nextMonthForecast > 0 ? formatCurrency(metrics.nextMonthForecast) : "N/A"}
-                                icon={TrendingUp} 
-                                footer={
-                                    <p className="text-xs text-muted-foreground">
-                                        {metrics.nextMonthForecast > 0 
-                                            ? <>Next month / {formatCurrency(metrics.totalForecastCost)} total</>
-                                            : "Run forecast to see"}
-                                    </p>
-                                }
-                            />
-                        </div>
-                        <div className="grid gap-4 mt-4 grid-cols-1 lg:grid-cols-7">
-                            <Card className="lg:col-span-4">
-                                <CardHeader className="flex flex-row items-center">
-                                    <div className="grid gap-2">
-                                        <CardTitle>Cost Analysis</CardTitle>
-                                        <CardDescription>
-                                            Historical and forecasted costs over time.
-                                        </CardDescription>
-                                    </div>
-                                    <Button onClick={handleForecast} disabled={isLoadingForecast} size="sm" className="ml-auto gap-1">
-                                        {isLoadingForecast && <Loader2 className="h-4 w-4 animate-spin" />}
-                                        Forecast Costs
-                                    </Button>
-                                </CardHeader>
-                                <CardContent className="pl-2">
-                                    <ResponsiveContainer width="100%" height={350}>
-                                        <LineChart data={chartData}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(str) => new Date(str).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })} />
-                                            <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `$${Number(val)/1000}k`} />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: 'hsl(var(--background))',
-                                                    border: '1px solid hsl(var(--border))',
-                                                    borderRadius: 'var(--radius)',
-                                                }}
-                                                labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { month: 'long', year: 'numeric'})}
-                                                formatter={(value) => formatCurrency(value as number)}
-                                            />
-                                            <Legend />
-                                            <Line type="monotone" dataKey="Actual Cost" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                                            {forecastData.length > 0 && <Line type="monotone" dataKey="Forecasted Cost" stroke="hsl(var(--accent))" strokeWidth={2} strokeDasharray="5 5" />}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                            <Card className="lg:col-span-3">
-                                <CardHeader>
-                                    <CardTitle>Decision Support</CardTitle>
-                                    <CardDescription>
-                                        AI-powered insights and recommendations.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid gap-4">
-                                    {historicalCosts.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-                                            <p>Please upload data to generate insights.</p>
-                                        </div>
-                                    ) : !analysisSummary && !overrunWarning ? (
-                                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
-                                            <p>Run a forecast to generate insights.</p>
-                                        </div>
-                                    ) : null}
-                                    {overrunWarning && (
-                                        <Alert variant="destructive">
-                                            <ShieldAlert className="h-4 w-4" />
-                                            <AlertTitle>Budget Overrun Warning!</AlertTitle>
-                                            <AlertDescription>
-                                                {overrunWarning}
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
-                                    {analysisSummary && (
-                                        <Alert>
-                                            <BarChart3 className="h-4 w-4" />
-                                            <AlertTitle>Analysis Summary</AlertTitle>
-                                            <AlertDescription>
-                                                {analysisSummary}
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="data-import">
-                        <CsvUploader onDataUploaded={handleDataUploaded} />
-                    </TabsContent>
-                    <TabsContent value="anomaly-detection">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Anomaly Detection</CardTitle>
-                                <CardDescription>Identify unusual fluctuations in your cost data using AI.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
-                                <ShieldAlert className="w-16 h-16 text-primary" />
-                                <p className="max-w-md text-muted-foreground">
-                                    Our AI will analyze the historical cost data to find any significant deviations, outliers, or unexpected trends that might require your attention.
-                                </p>
+    <>
+        <Tabs defaultValue="overview">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="data-import">Data Import</TabsTrigger>
+                <TabsTrigger value="anomaly-detection">Anomaly Detection</TabsTrigger>
+                <TabsTrigger value="raw-data">Raw Data</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <KpiCard 
+                        title="Total Cost (Current)" 
+                        value={formatCurrency(metrics.totalCost)} 
+                        icon={DollarSign}
+                        footer={<ChangeFooter change={metrics.costChange} changeType={metrics.costChangeType} />}
+                    />
+                    <KpiCard 
+                        title="Avg. Unit Cost" 
+                        value={formatCurrency(metrics.avgUnitCost)} 
+                        icon={Package}
+                        footer={<ChangeFooter change={metrics.unitCostChange} changeType={metrics.unitCostChangeType} />}
+                    />
+                    <KpiCard 
+                        title="Production Volume" 
+                        value={formatNumber(metrics.productionVolume)}
+                        icon={BarChart3} 
+                        footer={<ChangeFooter change={metrics.volumeChange} changeType={metrics.volumeChangeType} isIncreaseGood={true} />}
+                    />
+                    <KpiCard 
+                        title="Cost Forecast" 
+                        value={metrics.nextMonthForecast > 0 ? formatCurrency(metrics.nextMonthForecast) : "N/A"}
+                        icon={TrendingUp} 
+                        footer={
+                            <p className="text-xs text-muted-foreground">
+                                {metrics.nextMonthForecast > 0 
+                                    ? <>Next month / {formatCurrency(metrics.totalForecastCost)} total</>
+                                    : "Run forecast to see"}
+                            </p>
+                        }
+                    />
+                </div>
+                <div className="grid gap-4 mt-4 grid-cols-1 lg:grid-cols-7">
+                    <Card className="lg:col-span-4">
+                        <CardHeader className="flex flex-row items-center">
+                            <div className="grid gap-2">
+                                <CardTitle>Cost Analysis</CardTitle>
+                                <CardDescription>
+                                    Historical and forecasted costs over time.
+                                </CardDescription>
+                            </div>
+                            <Button onClick={handleForecast} disabled={isLoadingForecast} size="sm" className="ml-auto gap-1">
+                                {isLoadingForecast && <Loader2 className="h-4 w-4 animate-spin" />}
+                                Forecast Costs
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="pl-2">
+                            <ResponsiveContainer width="100%" height={350}>
+                                <LineChart data={chartData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(str) => new Date(str).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })} />
+                                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `$${Number(val)/1000}k`} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'hsl(var(--background))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: 'var(--radius)',
+                                        }}
+                                        labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { month: 'long', year: 'numeric'})}
+                                        formatter={(value) => formatCurrency(value as number)}
+                                    />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="Actual Cost" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                    {forecastData.length > 0 && <Line type="monotone" dataKey="Forecasted Cost" stroke="hsl(var(--accent))" strokeWidth={2} strokeDasharray="5 5" />}
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                    <Card className="lg:col-span-3">
+                        <CardHeader>
+                            <CardTitle>Decision Support</CardTitle>
+                            <CardDescription>
+                                AI-powered insights and recommendations.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-4">
+                            {historicalCosts.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
+                                    <p>Please upload data to generate insights.</p>
+                                </div>
+                            ) : !analysisSummary && !overrunWarning ? (
+                                <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
+                                    <p>Run a forecast to generate insights.</p>
+                                </div>
+                            ) : null}
+                            {overrunWarning && (
+                                <Alert variant="destructive">
+                                    <ShieldAlert className="h-4 w-4" />
+                                    <AlertTitle>Budget Overrun Warning!</AlertTitle>
+                                    <AlertDescription>
+                                        {overrunWarning}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            {analysisSummary && (
+                                <Alert>
+                                    <BarChart3 className="h-4 w-4" />
+                                    <AlertTitle>Analysis Summary</AlertTitle>
+                                    <AlertDescription>
+                                        {analysisSummary}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </TabsContent>
+            <TabsContent value="data-import">
+                <CsvUploader onDataUploaded={handleDataUploaded} />
+            </TabsContent>
+            <TabsContent value="anomaly-detection">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Anomaly Detection</CardTitle>
+                        <CardDescription>Identify unusual fluctuations in your cost data using AI.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
+                        <ShieldAlert className="w-16 h-16 text-primary" />
+                        <p className="max-w-md text-muted-foreground">
+                            Our AI will analyze the historical cost data to find any significant deviations, outliers, or unexpected trends that might require your attention.
+                        </p>
 
-                                <Button onClick={handleAnomalyDetection} disabled={isLoadingAnomaly}>
-                                    {isLoadingAnomaly && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Run Anomaly Analysis
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="raw-data">
-                       <Card>
-                           <CardHeader>
-                               <CardTitle>Historical Cost Data</CardTitle>
-                               <CardDescription>The complete dataset used for analysis and forecasting.</CardDescription>
-                           </CardHeader>
-                           <CardContent>
-                               {historicalCosts.length > 0 ? (
-                                   <Table>
-                                       <TableHeader>
-                                           <TableRow>
-                                               <TableHead>Date</TableHead>
-                                               <TableHead className="text-right">Total Cost</TableHead>
-                                               <TableHead className="text-right">Unit Cost</TableHead>
-                                               <TableHead className="text-right">Volume</TableHead>
-                                           </TableRow>
-                                       </TableHeader>
-                                       <TableBody>
-                                           {[...historicalCosts].reverse().map((cost) => (
-                                               <TableRow key={cost.date}>
-                                                   <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</TableCell>
-                                                   <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
-                                                   <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
-                                                   <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
-                                               </TableRow>
-                                           ))}
-                                       </TableBody>
-                                   </Table>
-                               ) : (
-                                   <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
-                                        <p>No data loaded. Please upload a file in the "Data Import" tab.</p>
-                                   </div>
-                               )}
-                           </CardContent>
-                       </Card>
-                    </TabsContent>
-                </Tabs>
-            </main>
+                        <Button onClick={handleAnomalyDetection} disabled={isLoadingAnomaly}>
+                            {isLoadingAnomaly && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Run Anomaly Analysis
+                        </Button>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="raw-data">
+               <Card>
+                   <CardHeader>
+                       <CardTitle>Historical Cost Data</CardTitle>
+                       <CardDescription>The complete dataset used for analysis and forecasting.</CardDescription>
+                   </CardHeader>
+                   <CardContent>
+                       {historicalCosts.length > 0 ? (
+                           <Table>
+                               <TableHeader>
+                                   <TableRow>
+                                       <TableHead>Date</TableHead>
+                                       <TableHead className="text-right">Total Cost</TableHead>
+                                       <TableHead className="text-right">Unit Cost</TableHead>
+                                       <TableHead className="text-right">Volume</TableHead>
+                                   </TableRow>
+                               </TableHeader>
+                               <TableBody>
+                                   {[...historicalCosts].reverse().map((cost) => (
+                                       <TableRow key={cost.date}>
+                                           <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</TableCell>
+                                           <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
+                                           <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
+                                           <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
+                                       </TableRow>
+                                   ))}
+                               </TableBody>
+                           </Table>
+                       ) : (
+                           <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
+                                <p>No data loaded. Please upload a file in the "Data Import" tab.</p>
+                           </div>
+                       )}
+                   </CardContent>
+               </Card>
+            </TabsContent>
+        </Tabs>
 
-            <AlertDialog open={isAnomalyAlertOpen} onOpenChange={setIsAnomalyAlertOpen}>
-                <AlertDialogContent className="max-w-2xl">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Anomaly Detection Report</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            The following anomalies were detected in the cost data.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="max-h-[60vh] overflow-y-auto pr-4">
-                        <pre className="whitespace-pre-wrap text-sm text-foreground bg-muted p-4 rounded-md font-sans">
-                            {anomalyReport}
-                        </pre>
-                    </div>
-                    <AlertDialogFooter>
-                        <AlertDialogAction>Close</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </SidebarInset>
-    </SidebarProvider>
+        <AlertDialog open={isAnomalyAlertOpen} onOpenChange={setIsAnomalyAlertOpen}>
+            <AlertDialogContent className="max-w-2xl">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Anomaly Detection Report</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        The following anomalies were detected in the cost data.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto pr-4">
+                    <pre className="whitespace-pre-wrap text-sm text-foreground bg-muted p-4 rounded-md font-sans">
+                        {anomalyReport}
+                    </pre>
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogAction>Close</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </>
   );
 }

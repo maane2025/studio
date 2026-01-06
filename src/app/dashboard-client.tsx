@@ -13,6 +13,7 @@ import {
   TrendingDown,
   TrendingUp,
   User,
+  Upload,
 } from 'lucide-react';
 import {
   CartesianGrid,
@@ -79,8 +80,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
-import { historicalCosts, formatCurrency, formatNumber } from '@/lib/data';
+import { historicalCosts as initialHistoricalCosts, formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
 import { runForecast, runAnomalyDetection } from './actions';
 import { Logo } from '@/components/icons';
@@ -209,12 +211,106 @@ const ChangeFooter = ({ change, changeType, isIncreaseGood = false }: { change: 
     );
 };
 
+function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => void }) {
+    const [file, setFile] = useState<File | null>(null);
+    const { toast } = useToast();
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            setFile(event.target.files[0]);
+        }
+    };
+
+    const handleUpload = () => {
+        if (!file) {
+            toast({
+                variant: "destructive",
+                title: "No file selected",
+                description: "Please select a CSV file to upload.",
+            });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target?.result;
+            if (typeof text === 'string') {
+                try {
+                    const lines = text.trim().split('\n');
+                    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    const requiredHeaders = ['date', 'totalcost', 'unitcost', 'volume'];
+                    const hasRequiredHeaders = requiredHeaders.every(h => header.includes(h));
+
+                    if (!hasRequiredHeaders) {
+                         toast({
+                            variant: "destructive",
+                            title: "Invalid CSV Header",
+                            description: `File must have columns: ${requiredHeaders.join(', ')}`,
+                        });
+                        return;
+                    }
+
+                    const dateIndex = header.indexOf('date');
+                    const totalCostIndex = header.indexOf('totalcost');
+                    const unitCostIndex = header.indexOf('unitcost');
+                    const volumeIndex = header.indexOf('volume');
+
+                    const data = lines.slice(1).map(line => {
+                        const values = line.split(',');
+                        return {
+                            date: new Date(values[dateIndex]).toISOString().split('T')[0],
+                            totalCost: parseFloat(values[totalCostIndex]),
+                            unitCost: parseFloat(values[unitCostIndex]),
+                            volume: parseInt(values[volumeIndex], 10),
+                        };
+                    }).filter(d => !isNaN(d.totalCost));
+                    
+                    onDataUploaded(data);
+                    toast({
+                        title: "Data Uploaded",
+                        description: `${data.length} records have been successfully loaded.`,
+                    });
+
+                } catch(error) {
+                    console.error("CSV Parsing error:", error);
+                     toast({
+                        variant: "destructive",
+                        title: "Parsing Error",
+                        description: "Could not parse the CSV file. Please check its format.",
+                    });
+                }
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Data Import</CardTitle>
+                <CardDescription>Upload a CSV file with your cost data. The file must contain the columns: 'Date', 'TotalCost', 'UnitCost', and 'Volume'.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-10">
+                 <Upload className="w-16 h-16 text-primary" />
+                 <div className="flex w-full max-w-sm items-center gap-2">
+                    <Input type="file" accept=".csv" onChange={handleFileChange} />
+                    <Button onClick={handleUpload} disabled={!file}>Upload</Button>
+                </div>
+                <p className="text-xs text-muted-foreground max-w-md">
+                    Your existing data will be replaced by the data in the uploaded file. The app will then use this new dataset for all analyses and forecasts.
+                </p>
+            </CardContent>
+        </Card>
+    )
+}
+
 export default function DashboardClient() {
     const [isClient, setIsClient] = useState(false);
     useEffect(() => {
         setIsClient(true);
     }, []);
 
+    const [historicalCosts, setHistoricalCosts] = useState<Cost[]>(initialHistoricalCosts);
     const [forecastData, setForecastData] = useState<ForecastData[]>([]);
     const [analysisSummary, setAnalysisSummary] = useState('');
     const [overrunWarning, setOverrunWarning] = useState('');
@@ -226,6 +322,15 @@ export default function DashboardClient() {
     const { toast } = useToast();
 
     const metrics = useMemo(() => {
+        if (historicalCosts.length === 0) {
+            return {
+                totalCost: 0, costChange: '0.0%', costChangeType: 'increase',
+                avgUnitCost: 0, unitCostChange: '0.0%', unitCostChangeType: 'increase',
+                productionVolume: 0, volumeChange: '0.0%', volumeChangeType: 'increase',
+                nextMonthForecast: 0, totalForecastCost: 0,
+            };
+        }
+
         const currentMonth = historicalCosts[historicalCosts.length - 1];
         if (historicalCosts.length < 2) {
              return {
@@ -267,7 +372,7 @@ export default function DashboardClient() {
             nextMonthForecast: lastForecastCost,
             totalForecastCost: totalForecastCost,
         };
-    }, [forecastData]);
+    }, [historicalCosts, forecastData]);
 
     const chartData = useMemo(() => {
         const historical = historicalCosts.map(d => ({ date: d.date, 'Actual Cost': d.totalCost }));
@@ -285,9 +390,17 @@ export default function DashboardClient() {
             }
         });
         return combined.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [forecastData]);
+    }, [historicalCosts, forecastData]);
 
     const handleForecast = async () => {
+        if(historicalCosts.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No Data",
+                description: "Cannot run forecast without historical data. Please upload a CSV.",
+            });
+            return;
+        }
         setIsLoadingForecast(true);
         const result = await runForecast(historicalCosts);
         if (result.error) {
@@ -309,6 +422,14 @@ export default function DashboardClient() {
     };
 
     const handleAnomalyDetection = async () => {
+        if(historicalCosts.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No Data",
+                description: "Cannot run anomaly detection without historical data. Please upload a CSV.",
+            });
+            return;
+        }
         setIsLoadingAnomaly(true);
         const result = await runAnomalyDetection(historicalCosts);
         if (result.error) {
@@ -323,6 +444,15 @@ export default function DashboardClient() {
         }
         setIsLoadingAnomaly(false);
     };
+    
+    const handleDataUploaded = (data: Cost[]) => {
+        setHistoricalCosts(data);
+        // Reset forecast and analysis when new data is uploaded
+        setForecastData([]);
+        setAnalysisSummary('');
+        setOverrunWarning('');
+        setAnomalyReport('');
+    }
 
     if (!isClient) {
         return null;
@@ -335,8 +465,9 @@ export default function DashboardClient() {
             <Header />
             <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="data-import">Data Import</TabsTrigger>
                         <TabsTrigger value="anomaly-detection">Anomaly Detection</TabsTrigger>
                         <TabsTrigger value="raw-data">Raw Data</TabsTrigger>
                     </TabsList>
@@ -417,11 +548,15 @@ export default function DashboardClient() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
-                                    {!analysisSummary && !overrunWarning && (
+                                    {historicalCosts.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
+                                            <p>Please upload data to generate insights.</p>
+                                        </div>
+                                    ) : !analysisSummary && !overrunWarning ? (
                                         <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-64">
                                             <p>Run a forecast to generate insights.</p>
                                         </div>
-                                    )}
+                                    ) : null}
                                     {overrunWarning && (
                                         <Alert variant="destructive">
                                             <ShieldAlert className="h-4 w-4" />
@@ -443,6 +578,9 @@ export default function DashboardClient() {
                                 </CardContent>
                             </Card>
                         </div>
+                    </TabsContent>
+                    <TabsContent value="data-import">
+                        <CsvUploader onDataUploaded={handleDataUploaded} />
                     </TabsContent>
                     <TabsContent value="anomaly-detection">
                         <Card>
@@ -469,26 +607,32 @@ export default function DashboardClient() {
                                <CardDescription>The complete dataset used for analysis and forecasting.</CardDescription>
                            </CardHeader>
                            <CardContent>
-                               <Table>
-                                   <TableHeader>
-                                       <TableRow>
-                                           <TableHead>Date</TableHead>
-                                           <TableHead className="text-right">Total Cost</TableHead>
-                                           <TableHead className="text-right">Unit Cost</TableHead>
-                                           <TableHead className="text-right">Volume</TableHead>
-                                       </TableRow>
-                                   </TableHeader>
-                                   <TableBody>
-                                       {[...historicalCosts].reverse().map((cost) => (
-                                           <TableRow key={cost.date}>
-                                               <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</TableCell>
-                                               <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
-                                               <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
-                                               <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
+                               {historicalCosts.length > 0 ? (
+                                   <Table>
+                                       <TableHeader>
+                                           <TableRow>
+                                               <TableHead>Date</TableHead>
+                                               <TableHead className="text-right">Total Cost</TableHead>
+                                               <TableHead className="text-right">Unit Cost</TableHead>
+                                               <TableHead className="text-right">Volume</TableHead>
                                            </TableRow>
-                                       ))}
-                                   </TableBody>
-                               </Table>
+                                       </TableHeader>
+                                       <TableBody>
+                                           {[...historicalCosts].reverse().map((cost) => (
+                                               <TableRow key={cost.date}>
+                                                   <TableCell>{new Date(cost.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</TableCell>
+                                                   <TableCell className="text-right">{formatCurrency(cost.totalCost)}</TableCell>
+                                                   <TableCell className="text-right">{formatCurrency(cost.unitCost)}</TableCell>
+                                                   <TableCell className="text-right">{formatNumber(cost.volume)}</TableCell>
+                                               </TableRow>
+                                           ))}
+                                       </TableBody>
+                                   </Table>
+                               ) : (
+                                   <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-10">
+                                        <p>No data loaded. Please upload a CSV file in the "Data Import" tab.</p>
+                                   </div>
+                               )}
                            </CardContent>
                        </Card>
                     </TabsContent>
@@ -517,3 +661,5 @@ export default function DashboardClient() {
     </SidebarProvider>
   );
 }
+
+    

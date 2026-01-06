@@ -47,7 +47,7 @@ const costForecastingPrompt = ai.definePrompt({
   name: 'costForecastingPrompt',
   input: {schema: CostForecastingInputSchema},
   output: {schema: CostForecastingOutputSchema},
-  prompt: `Vous êtes un analyste financier expert en prévision de coûts.
+  prompt: `Vous êtes un analyste financier expert en prévision de coûts au Maroc. La devise utilisée est le Dirham Marocain (DH).
 
   Analysez les données de coûts historiques fournies pour prévoir les coûts futurs et identifier les dépassements budgétaires potentiels.
   Fournissez les coûts prévus au format CSV et un résumé de votre analyse, y compris les tendances clés et les recommandations.

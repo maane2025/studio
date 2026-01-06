@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                             <CartesianGrid />
                             <XAxis type="number" dataKey="volume" name="Volume" unit=" unités" tickFormatter={(val) => formatNumber(val)} />
-                            <YAxis type="number" dataKey="cost" name="Coût" unit=" USD" tickFormatter={(val) => `$${Number(val)/1000}k`}/>
+                            <YAxis type="number" dataKey="cost" name="Coût" unit=" DH" tickFormatter={(val) => `${Number(val)/1000}k DH`}/>
                             <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(value, name) => name === 'Coût' ? formatCurrency(value as number) : formatNumber(value as number)} />
                             <Scatter name="Données de coût" data={analyticsData.costVsVolume} fill="hsl(var(--primary))" />
                         </ScatterChart>
@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
                         <BarChart data={analyticsData.monthlyTrends}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
-                            <YAxis tickFormatter={(val) => `$${Number(val)/1000}k`}/>
+                            <YAxis tickFormatter={(val) => `${Number(val)/1000}k DH`}/>
                             <Tooltip formatter={(value) => formatCurrency(value as number)} />
                             <Legend />
                             <Bar dataKey="Coût Total" fill="hsl(var(--accent))" />

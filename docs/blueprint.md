@@ -1,4 +1,4 @@
-# **App Name**: CostPilotAI
+# **App Name**: Enset
 
 ## Core Features:
 

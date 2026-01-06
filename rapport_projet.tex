@@ -1,0 +1,152 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\geometry{margin=2.5cm}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\title{\textbf{Rapport de Projet : Enset} \\ \large Optimisation et prévision des coûts organisationnels par l'IA}
+\author{Contrôle de Gestion}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+\section{Contexte et Justification}
+Dans un contexte économique marqué par une forte pression sur les coûts et une exigence accrue de performance, les organisations doivent disposer d’outils efficaces pour maîtriser leurs dépenses et améliorer leur rentabilité.
+
+Le projet \textbf{Enset} vise à enrichir le système d'information en introduisant des capacités d'analyse avancée et de prévision grâce à l'intelligence artificielle.
+
+\section{Problématique}
+Comment exploiter et améliorer le système d’information à l’aide de l’intelligence artificielle afin d’optimiser le calcul et la prévision des coûts, et ainsi renforcer le pilotage de la performance organisationnelle ?
+
+\chapter{Objectifs et Périmètre}
+\section{Objectifs Spécifiques}
+\begin{itemize}
+    \item Exploiter les données de coûts issues du système d’information.
+    \item Calculer les coûts complets et analyser leur évolution.
+    \item Utiliser l’intelligence artificielle pour prévoir les coûts futurs.
+    \item Identifier les écarts significatifs entre coûts réels et prévisionnels.
+\end{itemize}
+
+\section{Périmètre}
+Le projet se concentre sur le pilotage de la performance financière via l'analyse des :
+\begin{itemize}
+    \item Coûts fixes et variables.
+    \item Coûts de production et volumes d'activité.
+    \item Historique mensuel des coûts.
+\end{itemize}
+
+\chapter{Solution Proposée}
+\section{Architecture Technique}
+L'application est développée avec les technologies suivantes :
+\begin{itemize}
+    \item \textbf{Frontend} : Next.js 15 avec Tailwind CSS et Shadcn UI.
+    \item \textbf{IA Backend} : Google Genkit avec le modèle Groq (Llama 3.3 70B).
+    \item \textbf{Analyse} : Recharts pour la visualisation des données.
+\end{itemize}
+
+\section{Intelligence Artificielle}
+L'IA est utilisée pour trois flux principaux :
+\begin{enumerate}
+    \item \textbf{Prévision des coûts} : Analyse des tendances historiques pour prédire les 6 prochains mois.
+    \item \textbf{Détection d'anomalies} : Identification automatique des fluctuations suspectes.
+    \item \textbf{Aide à la décision} : Génération de recommandations textuelles pour les gestionnaires.
+\end{enumerate}
+
+\chapter{Interface Utilisateur et Captures d'écran}
+
+\section{Tableau de Bord Principal}
+Description de la vue d'ensemble avec les KPI (Coût Total, Coût Unitaire, Volume).
+
+\begin{figure}[h]
+    \centering
+    \fbox{\begin{minipage}{0.8\textwidth} \centering \vspace{3cm} [Capture d'écran 1 : Tableau de Bord Principal] \vspace{3cm} \end{minipage}}
+    \caption{Aperçu global du tableau de bord Enset}
+\end{figure}
+
+\section{Analyse Graphique}
+Visualisation des tendances (Coût Actuel vs Coût Prévu).
+
+\begin{figure}[h]
+    \centering
+    \fbox{\begin{minipage}{0.8\textwidth} \centering \vspace{3cm} [Capture d'écran 2 : Graphique d'analyse des coûts] \vspace{3cm} \end{minipage}}
+    \caption{Graphique linéaire montrant les prévisions de l'IA}
+\end{figure}
+
+\section{Importation de Données}
+Interface permettant de télécharger des fichiers Excel ou CSV avec support multilingue.
+
+\begin{figure}[h]
+    \centering
+    \fbox{\begin{minipage}{0.8\textwidth} \centering \vspace{3cm} [Capture d'écran 3 : Interface d'importation de fichiers] \vspace{3cm} \end{minipage}}
+    \caption{Module d'importation avec validation flexible des en-têtes}
+\end{figure}
+
+\chapter{Implémentation (Extraits de Code)}
+
+\section{Configuration de l'IA (Genkit)}
+\begin{lstlisting}[language=TypeScript, caption=src/ai/genkit.ts]
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/google-genai';
+import {groq} from 'genkitx-groq';
+
+export const ai = genkit({
+  plugins: [googleAI(), groq()],
+  model: 'groq/llama-3.3-70b-versatile',
+});
+\end{lstlisting}
+
+\section{Flux de Prévision des Coûts}
+\begin{lstlisting}[language=TypeScript, caption=src/ai/flows/cost-forecasting.ts]
+const costForecastingPrompt = ai.definePrompt({
+  name: 'costForecastingPrompt',
+  prompt: `Vous etes un analyste financier expert en prevision de couts au Maroc. La devise utilisee est le Dirham Marocain (DH).
+  Analysez les donnees de couts historiques fournies pour prevoir les couts futurs...`,
+});
+\end{lstlisting}
+
+\section{Gestion de la Devise (DH)}
+\begin{lstlisting}[language=TypeScript, caption=src/lib/data.ts]
+export const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('fr-FR').format(value) + ' DH';
+};
+\end{lstlisting}
+
+\chapter{Conclusion}
+La solution Enset transforme les données brutes en informations stratégiques, permettant une gestion proactive des ressources et une meilleure anticipation des risques budgétaires.
+
+\end{document}

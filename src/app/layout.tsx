@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/layout';
 import { DataProvider } from '@/lib/data-provider';
 
 export const metadata: Metadata = {
-  title: 'CostPilotAI',
+  title: 'Enset',
   description: 'Optimisation et prévision intelligentes des coûts pour le pilotage de la performance.',
 };
 

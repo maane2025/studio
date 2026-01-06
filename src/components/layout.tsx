@@ -35,7 +35,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Logo } from '@/components/icons';
 
 
 const AppSidebar = () => {
@@ -52,9 +51,8 @@ const AppSidebar = () => {
     return (
       <Sidebar>
         <SidebarHeader>
-            <div className={`flex items-center gap-2 ${open ? 'w-full' : 'w-0'}`}>
-                <Logo className="size-7 text-primary" />
-                <span className="font-semibold text-lg whitespace-nowrap">CostPilotAI</span>
+            <div className={`flex items-center gap-2 ${open ? 'w-full' : 'w-0'} px-2 py-4`}>
+                <span className="font-bold text-2xl whitespace-nowrap text-primary">Enset</span>
             </div>
         </SidebarHeader>
         <SidebarContent>

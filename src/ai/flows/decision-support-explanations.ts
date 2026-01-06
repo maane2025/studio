@@ -36,13 +36,13 @@ const decisionSupportExplanationPrompt = ai.definePrompt({
   name: 'decisionSupportExplanationPrompt',
   input: {schema: GetDecisionSupportExplanationInputSchema},
   output: {schema: GetDecisionSupportExplanationOutputSchema},
-  prompt: `You are an AI assistant helping managers understand cost trends and budget overruns.
-  Provide a clear and concise explanation based on the following information:
+  prompt: `Vous êtes un assistant IA aidant les gestionnaires à comprendre les tendances des coûts et les dépassements de budget au Maroc. La devise utilisée est le Dirham Marocain (DH).
+  Fournissez une explication claire et concise basée sur les informations suivantes :
 
-  Cost Trends: {{{costTrends}}}
-  Budget Variance: {{{budgetVariance}}}
+  Tendances des coûts : {{{costTrends}}}
+  Écart budgétaire : {{{budgetVariance}}}
 
-  Explanation:`,
+  Explication :`,
 });
 
 const getDecisionSupportExplanationFlow = ai.defineFlow(

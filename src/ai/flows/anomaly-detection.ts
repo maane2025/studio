@@ -36,7 +36,7 @@ const anomalyDetectionPrompt = ai.definePrompt({
   name: 'anomalyDetectionPrompt',
   input: {schema: AnomalyDetectionInputSchema},
   output: {schema: AnomalyDetectionOutputSchema},
-  prompt: `Vous êtes un assistant IA spécialisé dans la détection d'anomalies financières.
+  prompt: `Vous êtes un assistant IA spécialisé dans la détection d'anomalies financières au Maroc. La devise utilisée est le Dirham Marocain (DH).
   Votre tâche est d'analyser les données de coûts fournies et d'identifier toute fluctuation ou anomalie inhabituelle.
   Fournissez un rapport résumant les anomalies détectées, y compris les raisons potentielles et la gravité.
 

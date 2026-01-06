@@ -107,49 +107,78 @@ function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => voi
                 });
                 return;
             }
-            const requiredHeaders = ['date', 'totalcost', 'unitcost', 'volume'];
-            const header = Object.keys(data[0]).map(h => h.toLowerCase().replace(/\s/g, ''));
-            const hasRequiredHeaders = requiredHeaders.every(h => header.includes(h));
+            const headerMap: {[key: string]: string[]} = {
+                date: ['date', 'jour', 'temps', 'mois'],
+                totalcost: ['totalcost', 'couttotal', 'coutstotaux', 'montant'],
+                unitcost: ['unitcost', 'coutunitaire', 'prixunitaire', 'coutvariableunitaire'],
+                volume: ['volume', 'quantite', 'production', 'volumeproduction']
+            };
 
-            if (!hasRequiredHeaders) {
+            const frenchMonths: {[key: string]: number} = {
+                'janvier': 0, 'fevrier': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5,
+                'juillet': 6, 'aout': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'decembre': 11
+            };
+
+            const actualHeaders = Object.keys(data[0]).map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, '').replace(/_/g, ''));
+            
+            const missingHeaders: string[] = [];
+            const mappedHeaderKeys: {[key: string]: string} = {};
+
+            for (const [required, variants] of Object.entries(headerMap)) {
+                const foundHeader = Object.keys(data[0]).find(h => {
+                    const normalized = h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, '').replace(/_/g, '');
+                    return variants.includes(normalized);
+                });
+
+                if (foundHeader) {
+                    mappedHeaderKeys[required] = foundHeader;
+                } else {
+                    missingHeaders.push(required);
+                }
+            }
+
+            if (missingHeaders.length > 0) {
                 toast({
                     variant: "destructive",
                     title: "En-tête Invalide",
-                    description: `Le fichier doit contenir les colonnes : date, totalcost, unitcost, volume`,
+                    description: `Le fichier doit contenir des colonnes pour : ${Object.keys(headerMap).join(', ')}. Colonnes manquantes : ${missingHeaders.join(', ')}`,
                 });
                 return;
             }
 
-            const mapHeader = (h: string) => h.toLowerCase().replace(/\s/g, '');
-
             const parsedData = data.map((row: any) => {
-                const newRow: {[key: string]: any} = {};
-                for (const key in row) {
-                    newRow[mapHeader(key)] = row[key];
-                }
+                const getVal = (key: string) => row[mappedHeaderKeys[key]];
                 
-                // Handle Excel's date serial number format
-                let date = newRow.date;
-                if (typeof date === 'number') {
-                    date = new Date(Math.round((date - 25569) * 864e5)).toISOString().split('T')[0];
-                } else if (typeof date === 'string') {
-                    // Try parsing various string formats
-                    const parsedDate = new Date(date);
-                    if (!isNaN(parsedDate.getTime())) {
-                        date = parsedDate.toISOString().split('T')[0];
+                // Handle Excel's date serial number format or French month names
+                let dateValue = getVal('date');
+                let date: any = "";
+                
+                if (typeof dateValue === 'number') {
+                    date = new Date(Math.round((dateValue - 25569) * 864e5)).toISOString().split('T')[0];
+                } else if (typeof dateValue === 'string') {
+                    const normalizedMonth = dateValue.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                    if (frenchMonths[normalizedMonth] !== undefined) {
+                        const d = new Date();
+                        d.setMonth(frenchMonths[normalizedMonth]);
+                        d.setDate(1);
+                        date = d.toISOString().split('T')[0];
                     } else {
-                        date = null; // Invalid date format
+                        const parsedDate = new Date(dateValue);
+                        if (!isNaN(parsedDate.getTime())) {
+                            date = parsedDate.toISOString().split('T')[0];
+                        } else {
+                            date = null;
+                        }
                     }
                 } else {
-                     date = new Date(date).toISOString().split('T')[0];
+                     date = new Date(dateValue).toISOString().split('T')[0];
                 }
-
 
                 return {
                     date: date,
-                    totalCost: parseFloat(newRow.totalcost),
-                    unitCost: parseFloat(newRow.unitcost),
-                    volume: parseInt(newRow.volume, 10),
+                    totalCost: parseFloat(getVal('totalcost')),
+                    unitCost: parseFloat(getVal('unitcost')),
+                    volume: parseInt(getVal('volume'), 10),
                 };
             }).filter(d => d.date && !isNaN(d.totalCost) && !isNaN(d.unitCost) && !isNaN(d.volume));
 
@@ -274,9 +303,9 @@ export default function DashboardClient() {
     const metrics = useMemo(() => {
         if (historicalCosts.length === 0) {
             return {
-                totalCost: 0, costChange: '0.0%', costChangeType: 'increase',
-                avgUnitCost: 0, unitCostChange: '0.0%', unitCostChangeType: 'increase',
-                productionVolume: 0, volumeChange: '0.0%', volumeChangeType: 'increase',
+                totalCost: 0, costChange: '0.0%', costChangeType: 'increase' as const,
+                avgUnitCost: 0, unitCostChange: '0.0%', unitCostChangeType: 'increase' as const,
+                productionVolume: 0, volumeChange: '0.0%', volumeChangeType: 'increase' as const,
                 nextMonthForecast: 0, totalForecastCost: 0,
             };
         }
@@ -286,13 +315,13 @@ export default function DashboardClient() {
              return {
                 totalCost: currentMonth.totalCost,
                 costChange: '0.0%',
-                costChangeType: 'increase',
+                costChangeType: 'increase' as const,
                 avgUnitCost: currentMonth.unitCost,
                 unitCostChange: '0.0%',
-                unitCostChangeType: 'increase',
+                unitCostChangeType: 'increase' as const,
                 productionVolume: currentMonth.volume,
                 volumeChange: '0.0%',
-                volumeChangeType: 'increase',
+                volumeChangeType: 'increase' as const,
                 nextMonthForecast: 0,
                 totalForecastCost: 0,
             };
@@ -303,21 +332,25 @@ export default function DashboardClient() {
         const volumeChangeNum = (((currentMonth.volume - prevMonth.volume) / prevMonth.volume) * 100);
         const unitCostChangeNum = (((currentMonth.unitCost - prevMonth.unitCost) / prevMonth.unitCost) * 100);
 
+        const costChangeType: 'increase' | 'decrease' = costChangeNum >= 0 ? 'increase' : 'decrease';
+        const volumeChangeType: 'increase' | 'decrease' = volumeChangeNum >= 0 ? 'increase' : 'decrease';
+        const unitCostChangeType: 'increase' | 'decrease' = unitCostChangeNum >= 0 ? 'increase' : 'decrease';
+        
         const lastForecastCost = forecastData.length > 0 ? forecastData[0]['Forecasted Cost'] : 0;
         const totalForecastCost = forecastData.reduce((acc, item) => acc + item['Forecasted Cost'], 0);
         
         return {
             totalCost: currentMonth.totalCost,
             costChange: `${Math.abs(costChangeNum).toFixed(1)}%`,
-            costChangeType: costChangeNum >= 0 ? 'increase' : 'decrease',
+            costChangeType,
             
             avgUnitCost: currentMonth.unitCost,
             unitCostChange: `${Math.abs(unitCostChangeNum).toFixed(1)}%`,
-            unitCostChangeType: unitCostChangeNum >= 0 ? 'increase' : 'decrease',
+            unitCostChangeType,
 
             productionVolume: currentMonth.volume,
             volumeChange: `${Math.abs(volumeChangeNum).toFixed(1)}%`,
-            volumeChangeType: volumeChangeNum >= 0 ? 'increase' : 'decrease',
+            volumeChangeType,
             
             nextMonthForecast: lastForecastCost,
             totalForecastCost: totalForecastCost,
@@ -325,7 +358,7 @@ export default function DashboardClient() {
     }, [historicalCosts, forecastData]);
 
     const chartData = useMemo(() => {
-        const historical = historicalCosts.map(d => ({ date: d.date, 'Coût Actuel': d.totalCost }));
+        const historical: any[] = historicalCosts.map(d => ({ date: d.date, 'Coût Actuel': d.totalCost }));
         if (forecastData.length === 0) return historical;
 
         const forecast = forecastData.map(d => ({ date: d.Date, 'Coût Prévu': d['Forecasted Cost'] }));
@@ -334,9 +367,9 @@ export default function DashboardClient() {
         forecast.forEach(f => {
             const existing = combined.find(h => h.date === f.date);
             if (existing) {
-                (existing as any)['Coût Prévu'] = f['Forecasted Cost'];
+                existing['Coût Prévu'] = f['Coût Prévu'];
             } else {
-                combined.push(f);
+                combined.push(f as any);
             }
         });
         return combined.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -442,7 +475,7 @@ export default function DashboardClient() {
                                 <LineChart data={chartData}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(str) => new Date(str).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })} />
-                                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `$${Number(val)/1000}k`} />
+                                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `${Number(val)/1000}k DH`} />
                                     <Tooltip
                                         contentStyle={{
                                             backgroundColor: 'hsl(var(--background))',

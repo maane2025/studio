@@ -82,7 +82,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
-import { useToast } from "@/hooks/use-toast";
+import { Toaster, toast } from "@/components/ui/toaster"
 import { historicalCosts as initialHistoricalCosts, formatCurrency, formatNumber } from '@/lib/data';
 import type { Cost } from '@/lib/data';
 import { runForecast, runAnomalyDetection } from './actions';
@@ -214,7 +214,6 @@ const ChangeFooter = ({ change, changeType, isIncreaseGood = false }: { change: 
 
 function CsvUploader({ onDataUploaded }: { onDataUploaded: (data: Cost[]) => void }) {
     const [file, setFile] = useState<File | null>(null);
-    const { toast } = useToast();
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -380,7 +379,6 @@ export default function DashboardClient() {
 
     const [isLoadingForecast, setIsLoadingForecast] = useState(false);
     const [isLoadingAnomaly, setIsLoadingAnomaly] = useState(false);
-    const { toast } = useToast();
 
     const metrics = useMemo(() => {
         if (historicalCosts.length === 0) {
